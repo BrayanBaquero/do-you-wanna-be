@@ -1,0 +1,11 @@
+{
+  "apiKey": "AIzaSyDummyKeyForAppletConfig",
+  "authDomain": "applet-832dd562-ad9f-41aa-aea1-a6007cadacfc.firebaseapp.com",
+  "projectId": "applet-832dd562-ad9f-41aa-aea1-a6007cadacfc",
+  "storageBucket": "applet-832dd562-ad9f-41aa-aea1-a6007cadacfc.firebasestorage.app",
+  "messagingSenderId": "000000000000",
+  "appId": "1:000000000000:web:0000000000000000000000",
+  "firestoreRegion": "nam5",
+  "databaseId": "(default)",
+  "appletId": "832dd562-ad9f-41aa-aea1-a6007cadacfc"
+}
