@@ -2,7 +2,7 @@ name: Desplegar en GitHub Pages
 
 on:
   push:
-    branches: ['main'] # o 'master' según el nombre de tu rama principal
+    branches: ['main', 'master']
   workflow_dispatch:
 
 permissions:
@@ -21,7 +21,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Descargar repositorio
+      - name: Descargar codigo
         uses: actions/checkout@v4
 
       - name: Configurar Node.js
@@ -30,9 +30,9 @@ jobs:
           node-version: 20
 
       - name: Instalar dependencias
-        run: npm install
+        run: npm install --legacy-peer-deps
 
-      - name: Compilar aplicación Vite
+      - name: Compilar proyecto
         run: npm run build
 
       - name: Configurar GitHub Pages
