@@ -1,12 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Proposal configurations and shared stories
+    // Proposal configurations, memories, photos and subcollections
     match /proposals/{proposalId} {
       allow read, write: if true;
+
+      match /{allSubcollections=**} {
+        allow read, write: if true;
+      }
     }
-    // Global default app settings
+
+    // Global settings fallback
     match /app_settings/{docId} {
+      allow read, write: if true;
+    }
+
+    // Allow general read/write for applet resources
+    match /{document=**} {
       allow read, write: if true;
     }
   }

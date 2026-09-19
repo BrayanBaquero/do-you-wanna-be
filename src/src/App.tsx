@@ -56,6 +56,7 @@ export default function App() {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isCloudSynced, setIsCloudSynced] = useState(true);
+  const [cloudToast, setCloudToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
 
   const [settings, setSettings] = useState<GameSettings>(() => {
     try {
@@ -77,8 +78,9 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
     retrieveSettings()
-      .then((loaded) => {
-        if (isMounted && loaded) {
+      .then(async (loaded) => {
+        if (!isMounted) return;
+        if (loaded && (loaded.photos?.length || loaded.partnerName !== DEFAULT_SETTINGS.partnerName)) {
           setSettings((prev) => ({
             ...prev,
             ...loaded,
@@ -86,6 +88,20 @@ export default function App() {
             photos: resolvePhotos(loaded.photos),
           }));
           setIsCloudSynced(true);
+        } else {
+          // If cloud has no customized document yet, check if this browser has local settings
+          // If so, automatically seed and upload them to Firestore so they are visible on GitHub!
+          try {
+            const saved = localStorage.getItem(STORAGE_KEY_FALLBACK);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (parsed && (parsed.partnerName !== DEFAULT_SETTINGS.partnerName || parsed.customReason || parsed.photos?.length)) {
+                console.log('Sincronizando automáticamente ajustes locales con la nube...');
+                await persistSettings(parsed);
+                setIsCloudSynced(true);
+              }
+            }
+          } catch {}
         }
       })
       .catch((err) => {
@@ -117,14 +133,25 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', currentTheme);
   }, [settings.palette]);
 
-  const handleSaveSettings = (newSettings: GameSettings) => {
+  const handleSaveSettings = async (newSettings: GameSettings) => {
     setSettings(newSettings);
-    // Persist to Cloud Firestore, IndexedDB, and localStorage
-    persistSettings(newSettings)
-      .then(() => setIsCloudSynced(true))
-      .catch((err) => {
-        console.warn('No se pudo persistir ajustes en la nube:', err);
-      });
+    setCloudToast({ message: 'Guardando en la nube...', type: 'info' });
+
+    try {
+      const result = await persistSettings(newSettings);
+      if (result.success) {
+        setIsCloudSynced(true);
+        setCloudToast({ message: '¡Guardado en la nube! Se verá en cualquier celular y en GitHub.', type: 'success' });
+      } else {
+        setCloudToast({ message: 'Guardado localmente. Revisando conexión a la nube...', type: 'info' });
+      }
+    } catch {
+      setCloudToast({ message: 'Guardado localmente en tu dispositivo.', type: 'info' });
+    }
+
+    setTimeout(() => {
+      setCloudToast(null);
+    }, 4000);
   };
 
   const handlePaletteSelect = (newPalette: ColorPalette) => {
@@ -261,6 +288,20 @@ export default function App() {
         onClose={() => setIsShareOpen(false)}
         partnerName={settings.partnerName}
       />
+
+      {/* Cloud Sync Toast Notification */}
+      {cloudToast && (
+        <div
+          className={`fixed bottom-12 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl shadow-xl border text-xs font-semibold flex items-center gap-2 animate-fadeIn transition-all ${
+            cloudToast.type === 'success'
+              ? 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-900/20'
+              : 'bg-gray-900 text-white border-gray-800 shadow-black/30'
+          }`}
+        >
+          <span>{cloudToast.type === 'success' ? '☁️' : '⏳'}</span>
+          <span>{cloudToast.message}</span>
+        </div>
+      )}
 
       {/* Subtle Footer */}
       <footer className="relative z-20 py-2.5 text-center text-[11px] text-rose-500/80 select-none">
