@@ -55,10 +55,9 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
               <span
                 title="Sincronizado permanentemente en la nube con Firebase"
-                className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300"
+                className="inline-flex items-center text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 select-none"
               >
                 <span>☁️</span>
-                <span>En la nube</span>
               </span>
             </h1>
             <p className="text-[11px] text-rose-500 font-medium">Un juego con mucho amor</p>
@@ -75,7 +74,6 @@ export const Header: React.FC<HeaderProps> = ({
             title="Cambiar paleta de colores"
           >
             <Palette className="w-3.5 h-3.5 text-rose-500" />
-            <span className="hidden sm:inline font-medium">Colores</span>
             <span className="text-xs">{activePalette.emoji}</span>
           </button>
 
@@ -86,7 +84,6 @@ export const Header: React.FC<HeaderProps> = ({
             title="Personalizar nombres y mensaje"
           >
             <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-            <span className="hidden sm:inline">Personalizar</span>
           </button>
 
           {onOpenShare && (

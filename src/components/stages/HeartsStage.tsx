@@ -29,6 +29,7 @@ const REASONS: { reason: string; emoji: string; color: string }[] = [
 export const HeartsStage: React.FC<HeartsStageProps> = ({ onNext, partnerName }) => {
   const [collectedCount, setCollectedCount] = useState<number>(0);
   const [activeReasons, setActiveReasons] = useState<string[]>([]);
+  const [isComplete, setIsComplete] = useState<boolean>(false);
   const targetCount = 5;
 
   // Track hearts available on screen
@@ -51,12 +52,11 @@ export const HeartsStage: React.FC<HeartsStageProps> = ({ onNext, partnerName })
 
     if (collectedCount + 1 >= targetCount) {
       setTimeout(() => {
+        setIsComplete(true);
         sound.playChime();
-      }, 300);
+      }, 2800);
     }
   };
-
-  const isComplete = collectedCount >= targetCount;
 
   return (
     <div className="relative z-10 flex flex-col items-center justify-between min-h-[72vh] px-4 py-3 max-w-xl mx-auto text-center">

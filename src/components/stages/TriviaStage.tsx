@@ -63,7 +63,7 @@ export const TriviaStage: React.FC<TriviaStageProps> = ({ onNext, partnerName })
       } else {
         setAnsweredCount(QUESTIONS.length);
       }
-    }, 1100);
+    }, 2800);
   };
 
   return (
