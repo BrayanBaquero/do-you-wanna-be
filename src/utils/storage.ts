@@ -119,6 +119,8 @@ export function compressImageFile(
 export async function persistSettings(settings: GameSettings, proposalId = getProposalIdFromUrl()): Promise<{ success: boolean; error?: string }> {
   const timestamp = Date.now();
 
+  const isSmallAudio = Boolean(settings.customAudioUrl && settings.customAudioUrl.length < 350000);
+
   const mainPayload = {
     partnerName: settings.partnerName || 'Mi Persona Favorita',
     proposerName: settings.proposerName || 'Tu Admirador/a',
@@ -127,6 +129,11 @@ export async function persistSettings(settings: GameSettings, proposalId = getPr
     customReason: settings.customReason || '',
     palette: settings.palette || 'rose',
     photoCount: settings.photos?.length || 0,
+    customAudioName: settings.customAudioName || '',
+    customAudioVolume: settings.customAudioVolume ?? 0.5,
+    backgroundMusicEnabled: settings.backgroundMusicEnabled !== false,
+    hasCustomAudio: Boolean(settings.customAudioUrl),
+    customAudioUrl: isSmallAudio ? (settings.customAudioUrl || '') : '',
     updatedAt: timestamp,
   };
 
@@ -137,6 +144,34 @@ export async function persistSettings(settings: GameSettings, proposalId = getPr
   try {
     const proposalRef = doc(db, 'proposals', proposalId);
     await setDoc(proposalRef, mainPayload, { merge: true });
+
+    // Save audio chunks in subcollection if audio exceeds single document limit
+    if (settings.customAudioUrl && !isSmallAudio) {
+      const audioChunksCol = collection(db, 'proposals', proposalId, 'audio_chunks');
+      const oldAudioSnaps = await getDocs(audioChunksCol);
+      for (const d of oldAudioSnaps.docs) {
+        await deleteDoc(d.ref);
+      }
+
+      const CHUNK_SIZE = 350000;
+      const totalChunks = Math.ceil(settings.customAudioUrl.length / CHUNK_SIZE);
+      for (let i = 0; i < totalChunks; i++) {
+        const chunkData = settings.customAudioUrl.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+        await setDoc(doc(db, 'proposals', proposalId, 'audio_chunks', `c_${i}`), {
+          index: i,
+          total: totalChunks,
+          data: chunkData,
+        });
+      }
+    } else if (!settings.customAudioUrl) {
+      try {
+        const audioChunksCol = collection(db, 'proposals', proposalId, 'audio_chunks');
+        const oldAudioSnaps = await getDocs(audioChunksCol);
+        for (const d of oldAudioSnaps.docs) {
+          await deleteDoc(d.ref);
+        }
+      } catch {}
+    }
 
     // Save individual photos in subcollection: proposals/{proposalId}/photos/{photoId}
     if (settings.photos && settings.photos.length > 0) {
@@ -250,6 +285,22 @@ export async function retrieveSettings(proposalId = getProposalIdFromUrl()): Pro
         fetchedPhotos = mainData.photos;
       }
 
+      // Fetch audio (either stored directly or reassembled from audio_chunks)
+      let customAudioUrl = (mainData as any).customAudioUrl || '';
+      if (!customAudioUrl && (mainData as any).hasCustomAudio) {
+        try {
+          const audioChunksCol = collection(db, 'proposals', proposalId, 'audio_chunks');
+          const audioSnap = await getDocs(audioChunksCol);
+          if (!audioSnap.empty) {
+            const chunks = audioSnap.docs.map((d) => d.data() as { index: number; data: string });
+            chunks.sort((a, b) => a.index - b.index);
+            customAudioUrl = chunks.map((c) => c.data).join('');
+          }
+        } catch (e) {
+          console.warn('Error al recuperar chunks de audio de Firestore:', e);
+        }
+      }
+
       const combined: GameSettings = {
         partnerName: mainData.partnerName || 'Mi Persona Favorita',
         proposerName: mainData.proposerName || 'Tu Admirador/a',
@@ -258,6 +309,10 @@ export async function retrieveSettings(proposalId = getProposalIdFromUrl()): Pro
         customReason: mainData.customReason || '',
         palette: mainData.palette || 'rose',
         photos: fetchedPhotos.length > 0 ? fetchedPhotos : (mainData.photos || []),
+        customAudioUrl: customAudioUrl || undefined,
+        customAudioName: (mainData as any).customAudioName || undefined,
+        customAudioVolume: (mainData as any).customAudioVolume ?? 0.5,
+        backgroundMusicEnabled: (mainData as any).backgroundMusicEnabled !== false,
       };
 
       // Cache to IndexedDB
@@ -284,7 +339,7 @@ export async function retrieveSettings(proposalId = getProposalIdFromUrl()): Pro
       req.onerror = () => reject(req.error);
     });
 
-    if (result && result.photos && result.photos.length > 0) {
+    if (result) {
       return result;
     }
 
@@ -296,7 +351,7 @@ export async function retrieveSettings(proposalId = getProposalIdFromUrl()): Pro
       req.onsuccess = () => resolve(req.result || null);
       req.onerror = () => resolve(null);
     });
-    if (defaultResult && defaultResult.photos && defaultResult.photos.length > 0) {
+    if (defaultResult) {
       return defaultResult;
     }
   } catch (err) {
@@ -352,6 +407,10 @@ export function subscribeToProposalChanges(
               customReason: mainData.customReason || '',
               palette: mainData.palette || 'rose',
               photos: photos,
+              customAudioUrl: (mainData as any).customAudioUrl,
+              customAudioName: (mainData as any).customAudioName,
+              customAudioVolume: (mainData as any).customAudioVolume ?? 0.5,
+              backgroundMusicEnabled: (mainData as any).backgroundMusicEnabled !== false,
             });
           } catch (e) {
             console.warn('Error fetching photos in snapshot:', e);

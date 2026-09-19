@@ -1,5 +1,5 @@
-import React from 'react';
-import { Volume2, VolumeX, Sparkles, RotateCcw, Palette, Share2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Volume2, VolumeX, Sparkles, RotateCcw, Palette, Share2, Music } from 'lucide-react';
 import { GameStage, GameSettings } from '../types';
 import { PALETTES } from '../data/palettes';
 import { sound } from '../utils/audio';
@@ -40,6 +40,16 @@ export const Header: React.FC<HeaderProps> = ({
   const currentStep = STAGES_ORDER.find((s) => s.id === currentStage)?.step ?? 0;
   const partnerGreeting = settings.partnerName ? `Para: ${settings.partnerName}` : 'Una sorpresa especial';
   const activePalette = PALETTES.find((p) => p.id === settings.palette) || PALETTES[0];
+
+  const [isPlayingMusic, setIsPlayingMusic] = useState<boolean>(sound.isPlayingMusic);
+
+  useEffect(() => {
+    setIsPlayingMusic(sound.isPlayingMusic);
+    const unsub = sound.subscribe(() => {
+      setIsPlayingMusic(sound.isPlayingMusic);
+    });
+    return unsub;
+  }, []);
 
   return (
     <header className="relative z-20 w-full max-w-4xl mx-auto px-4 pt-4 pb-2 flex flex-col gap-2.5">
@@ -95,6 +105,27 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Share2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Compartir</span>
+            </button>
+          )}
+
+          {Boolean(settings.customAudioUrl && settings.backgroundMusicEnabled !== false) && (
+            <button
+              id="btn-music-toggle"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                sound.toggleMusic();
+              }}
+              className={`p-1.5 rounded-xl border shadow-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center ${
+                isPlayingMusic
+                  ? 'bg-rose-500 text-white border-rose-600 shadow-rose-200 ring-2 ring-rose-300/60'
+                  : 'bg-white/90 hover:bg-rose-50 text-rose-500 border-rose-200'
+              }`}
+              title={isPlayingMusic ? 'Pausar música de fondo' : 'Reproducir música de fondo'}
+              aria-label="Toggle música de fondo"
+            >
+              <Music className={`w-4 h-4 ${isPlayingMusic ? 'animate-bounce' : ''}`} />
             </button>
           )}
 

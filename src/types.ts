@@ -27,6 +27,10 @@ export interface GameSettings {
   customReason: string;
   photos: PhotoMemory[];
   palette: ColorPalette;
+  customAudioUrl?: string;
+  customAudioName?: string;
+  customAudioVolume?: number;
+  backgroundMusicEnabled?: boolean;
 }
 
 export interface CaughtHeart {

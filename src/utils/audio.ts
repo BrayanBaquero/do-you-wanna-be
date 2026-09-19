@@ -3,6 +3,182 @@
 class SoundManager {
   private ctx: AudioContext | null = null;
   public isMuted: boolean = false;
+  public isUserPaused: boolean = false;
+  private bgAudio: HTMLAudioElement | null = null;
+  private bgVolume: number = 0.5;
+  private currentAudioSrc: string | null = null;
+  private musicEnabled: boolean = true;
+  private hasInteracted: boolean = false;
+  private listeners: Set<() => void> = new Set();
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.ensureAudioElement();
+
+      const onUserInteraction = () => {
+        this.hasInteracted = true;
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(() => {});
+        }
+        // Only attempt to start on ambient interaction if the user did NOT pause it
+        if (!this.isUserPaused && this.bgAudio && this.currentAudioSrc && this.musicEnabled && !this.isMuted) {
+          if (this.bgAudio.paused) {
+            this.bgAudio.play().then(() => this.notifyChange()).catch(() => {});
+          }
+        }
+      };
+
+      // Standard user activation listeners (avoid pointerdown to prevent racing with button click events)
+      window.addEventListener('click', onUserInteraction, { passive: true });
+      window.addEventListener('touchstart', onUserInteraction, { passive: true });
+      window.addEventListener('keydown', onUserInteraction, { passive: true });
+    }
+  }
+
+  private ensureAudioElement(): HTMLAudioElement | null {
+    if (typeof window === 'undefined') return null;
+    if (!this.bgAudio) {
+      this.bgAudio = new Audio();
+      this.bgAudio.loop = true;
+      this.bgAudio.preload = 'auto';
+      (this.bgAudio as any).playsInline = true;
+
+      this.bgAudio.addEventListener('play', () => this.notifyChange());
+      this.bgAudio.addEventListener('pause', () => this.notifyChange());
+      this.bgAudio.addEventListener('ended', () => this.notifyChange());
+      this.bgAudio.addEventListener('error', (e) => {
+        console.warn('Error en elemento de audio de fondo:', e);
+        this.notifyChange();
+      });
+    }
+    return this.bgAudio;
+  }
+
+  // Subscribe to playback status changes
+  public subscribe(cb: () => void): () => void {
+    this.listeners.add(cb);
+    return () => this.listeners.delete(cb);
+  }
+
+  private notifyChange() {
+    this.listeners.forEach((cb) => {
+      try { cb(); } catch {}
+    });
+  }
+
+  // Configure background music source, volume and state
+  setMusicSource(url: string | null | undefined, volume = 0.5, enabled = true) {
+    this.bgVolume = Math.max(0, Math.min(1, volume));
+    this.musicEnabled = enabled;
+
+    const audio = this.ensureAudioElement();
+    if (!audio) return;
+
+    if (!url || !enabled) {
+      audio.pause();
+      this.currentAudioSrc = null;
+      this.notifyChange();
+      return;
+    }
+
+    audio.volume = this.isMuted ? 0 : this.bgVolume;
+
+    if (this.currentAudioSrc !== url) {
+      this.currentAudioSrc = url;
+      audio.src = url;
+    }
+
+    if (!this.isMuted && this.musicEnabled) {
+      this.playMusic();
+    }
+  }
+
+  setMusicVolume(volume: number) {
+    this.bgVolume = Math.max(0, Math.min(1, volume));
+    if (this.bgAudio) {
+      this.bgAudio.volume = this.isMuted ? 0 : this.bgVolume;
+    }
+  }
+
+  setMusicEnabled(enabled: boolean) {
+    this.musicEnabled = enabled;
+    if (!enabled && this.bgAudio) {
+      this.bgAudio.pause();
+    } else if (enabled && this.bgAudio && this.currentAudioSrc && !this.isMuted) {
+      this.playMusic();
+    }
+    this.notifyChange();
+  }
+
+  playMusic(): Promise<boolean> {
+    this.hasInteracted = true;
+    this.isUserPaused = false;
+    const audio = this.ensureAudioElement();
+    if (!audio || !this.currentAudioSrc || this.isMuted || !this.musicEnabled) {
+      return Promise.resolve(false);
+    }
+
+    audio.volume = this.isMuted ? 0 : this.bgVolume;
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      return playPromise
+        .then(() => {
+          this.notifyChange();
+          return true;
+        })
+        .catch((err) => {
+          console.log('Esperando interacción para reproducir música de fondo:', err);
+          return false;
+        });
+    }
+    this.notifyChange();
+    return Promise.resolve(true);
+  }
+
+  pauseMusic(byUser = true) {
+    if (byUser) {
+      this.isUserPaused = true;
+    }
+    if (this.bgAudio) {
+      this.bgAudio.pause();
+      this.notifyChange();
+    }
+  }
+
+  toggleMusic(): boolean {
+    if (this.isPlayingMusic) {
+      this.pauseMusic(true);
+      return false;
+    } else {
+      this.playMusic();
+      return true;
+    }
+  }
+
+  get isPlayingMusic(): boolean {
+    return Boolean(this.bgAudio && !this.bgAudio.paused && !this.isMuted);
+  }
+
+  get hasMusicTrack(): boolean {
+    return Boolean(this.currentAudioSrc && this.musicEnabled);
+  }
+
+  setMuted(muted: boolean) {
+    this.isMuted = muted;
+    if (this.bgAudio) {
+      if (this.isMuted) {
+        this.bgAudio.volume = 0;
+        this.bgAudio.pause();
+      } else {
+        this.bgAudio.volume = this.bgVolume;
+        if (this.currentAudioSrc && this.musicEnabled) {
+          this.playMusic();
+        }
+      }
+    }
+    this.notifyChange();
+  }
 
   private getContext(): AudioContext | null {
     if (this.isMuted) return null;

@@ -32,6 +32,8 @@ const DEFAULT_SETTINGS: GameSettings = {
   customReason: 'Eres la casualidad más bonita que me ha pasado en la vida.',
   photos: DEFAULT_PHOTOS,
   palette: 'rose',
+  customAudioVolume: 0.5,
+  backgroundMusicEnabled: true,
 };
 
 function resolvePhotos(savedPhotos?: PhotoMemory[]): PhotoMemory[] {
@@ -80,7 +82,7 @@ export default function App() {
     retrieveSettings()
       .then(async (loaded) => {
         if (!isMounted) return;
-        if (loaded && (loaded.photos?.length || loaded.partnerName !== DEFAULT_SETTINGS.partnerName)) {
+        if (loaded && (loaded.customAudioUrl || loaded.photos?.length || loaded.partnerName !== DEFAULT_SETTINGS.partnerName || loaded.customReason || loaded.palette)) {
           setSettings((prev) => ({
             ...prev,
             ...loaded,
@@ -133,6 +135,15 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', currentTheme);
   }, [settings.palette]);
 
+  // Synchronize background music with active settings
+  useEffect(() => {
+    if (settings.backgroundMusicEnabled && settings.customAudioUrl) {
+      sound.setMusicSource(settings.customAudioUrl, settings.customAudioVolume ?? 0.5, true);
+    } else {
+      sound.setMusicSource(null, settings.customAudioVolume ?? 0.5, false);
+    }
+  }, [settings.customAudioUrl, settings.customAudioVolume, settings.backgroundMusicEnabled]);
+
   const handleSaveSettings = async (newSettings: GameSettings) => {
     setSettings(newSettings);
     setCloudToast({ message: 'Guardando en la nube...', type: 'info' });
@@ -165,7 +176,7 @@ export default function App() {
   const handleToggleMute = () => {
     setIsMuted((prev) => {
       const next = !prev;
-      sound.isMuted = next;
+      sound.setMuted(next);
       return next;
     });
   };
@@ -202,7 +213,10 @@ export default function App() {
         {stage === 'intro' && (
           <IntroStage
             settings={settings}
-            onStart={() => setStage('hearts')}
+            onStart={() => {
+              sound.playMusic();
+              setStage('hearts');
+            }}
             onOpenSettings={() => setIsSettingsOpen(true)}
           />
         )}
