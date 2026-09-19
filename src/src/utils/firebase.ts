@@ -1,10 +1,24 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
 
-// Initialize or reuse Firebase App
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Built-in configuration ensures it works in local development, Cloud Run, and GitHub Pages deployments
+export const FIREBASE_CONFIG = {
+  projectId: "groovy-mender-fggh3",
+  appId: "1:989516383023:web:f52d9c60321c1abe3697da",
+  apiKey: "AIzaSyBcnhVW1kJXx532u0AFrRz86SwigkqLpHk",
+  authDomain: "groovy-mender-fggh3.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-remixpropuestade-b5ee8472-6dc5-45b2-90ec-0a5c2a7ed530",
+  storageBucket: "groovy-mender-fggh3.firebasestorage.app",
+  messagingSenderId: "989516383023",
+  measurementId: "",
+  oAuthClientId: "989516383023-48cnl1stk5ke6ggqc12d2ocvihlmfn1d.apps.googleusercontent.com",
+  recaptchaSiteKey: ""
+};
 
-// Initialize Firestore with custom database ID from config
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Initialize or reuse Firebase App instance
+const app = getApps().length > 0 ? getApp() : initializeApp(FIREBASE_CONFIG);
+
+// Initialize Firestore with the project's dedicated database ID
+export const db = getFirestore(app, FIREBASE_CONFIG.firestoreDatabaseId);
+
 export default app;

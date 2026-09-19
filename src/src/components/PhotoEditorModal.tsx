@@ -39,8 +39,8 @@ export const PhotoEditorModal: React.FC<PhotoEditorModalProps> = ({
 
     try {
       setIsProcessing(true);
-      // Automatically compress image client-side to prevent localStorage/IndexedDB overflow
-      const { dataUrl, originalSizeKb, compressedSizeKb } = await compressImageFile(file, 1200, 0.82);
+      // Automatically compress image client-side to fit comfortably in Firestore
+      const { dataUrl, originalSizeKb, compressedSizeKb } = await compressImageFile(file, 850, 0.72);
 
       sound.playShutter();
       setItems((prev) =>

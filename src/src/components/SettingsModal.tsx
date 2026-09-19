@@ -58,7 +58,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-3">
           <div className="p-2 bg-rose-100 text-rose-600 rounded-2xl">
             <Sparkles className="w-5 h-5" />
           </div>
@@ -66,6 +66,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <h2 className="text-lg font-bold text-gray-900">Personalizar Propuesta</h2>
             <p className="text-xs text-gray-500">Configura nombres, colores y se sincroniza en la nube</p>
           </div>
+        </div>
+
+        {/* Cloud Sync Notice */}
+        <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-2.5 mb-3 flex items-center gap-2 text-emerald-900">
+          <span className="text-base">☁️</span>
+          <p className="text-[11px] leading-tight">
+            <strong>Sincronización activa:</strong> Al pulsar <em>Guardar</em>, tus cambios se guardan directamente en Firebase. Al abrir tu despliegue en GitHub o cualquier celular, se verán tus datos actualizados.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">

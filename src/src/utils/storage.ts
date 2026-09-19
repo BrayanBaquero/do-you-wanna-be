@@ -1,4 +1,13 @@
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs,
+  deleteDoc,
+  onSnapshot,
+  writeBatch,
+} from 'firebase/firestore';
 import { db } from './firebase';
 import { GameSettings, PhotoMemory } from '../types';
 
@@ -44,10 +53,11 @@ function openDB(): Promise<IDBDatabase> {
 }
 
 // Client-side image compression using HTML5 Canvas
+// Generates compact, crystal-clear Web-ready images that fit perfectly in Firestore
 export function compressImageFile(
   file: File,
-  maxDimension = 1000,
-  quality = 0.78
+  maxDimension = 850,
+  quality = 0.72
 ): Promise<{ dataUrl: string; originalSizeKb: number; compressedSizeKb: number }> {
   return new Promise((resolve, reject) => {
     const originalSizeKb = Math.round(file.size / 1024);
@@ -59,7 +69,7 @@ export function compressImageFile(
         let width = img.width;
         let height = img.height;
 
-        // Resize down if larger than maxDimension
+        // Resize down proportionally if larger than maxDimension
         if (width > maxDimension || height > maxDimension) {
           if (width > height) {
             height = Math.round((height * maxDimension) / width);
@@ -80,13 +90,12 @@ export function compressImageFile(
           return;
         }
 
-        // Draw and compress to JPEG
+        // Draw and compress to clean JPEG
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
 
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        // Estimate size in KB from base64
         const compressedSizeKb = Math.round((dataUrl.length * (3 / 4)) / 1024);
 
         resolve({
@@ -106,50 +115,106 @@ export function compressImageFile(
 }
 
 // Save complete settings to Cloud Firestore AND local storage/IndexedDB
-export async function persistSettings(settings: GameSettings, proposalId = getProposalIdFromUrl()): Promise<void> {
+// Uses Firestore subcollections for photos to guarantee we never exceed document size limits
+export async function persistSettings(settings: GameSettings, proposalId = getProposalIdFromUrl()): Promise<{ success: boolean; error?: string }> {
   const timestamp = Date.now();
-  const payload = {
+
+  const mainPayload = {
+    partnerName: settings.partnerName || 'Mi Persona Favorita',
+    proposerName: settings.proposerName || 'Tu Admirador/a',
+    questionType: settings.questionType || 'novia',
+    customQuestion: settings.customQuestion || '¿Quieres ser mi novia?',
+    customReason: settings.customReason || '',
+    palette: settings.palette || 'rose',
+    photoCount: settings.photos?.length || 0,
+    updatedAt: timestamp,
+  };
+
+  let cloudSuccess = false;
+  let cloudErrorMsg: string | undefined;
+
+  // 1. Persist to Cloud Firestore
+  try {
+    const proposalRef = doc(db, 'proposals', proposalId);
+    await setDoc(proposalRef, mainPayload, { merge: true });
+
+    // Save individual photos in subcollection: proposals/{proposalId}/photos/{photoId}
+    if (settings.photos && settings.photos.length > 0) {
+      const photosColRef = collection(db, 'proposals', proposalId, 'photos');
+      const existingDocsSnap = await getDocs(photosColRef);
+      const existingDocIds = new Set(existingDocsSnap.docs.map((d) => d.id));
+      const currentPhotoIds = new Set(settings.photos.map((p) => p.id));
+
+      // Remove deleted photos
+      for (const oldId of existingDocIds) {
+        if (!currentPhotoIds.has(oldId)) {
+          await deleteDoc(doc(db, 'proposals', proposalId, 'photos', oldId));
+        }
+      }
+
+      // Save each photo as its own document (safely fits in Firestore)
+      for (let i = 0; i < settings.photos.length; i++) {
+        const photo = settings.photos[i];
+        const photoDocRef = doc(db, 'proposals', proposalId, 'photos', photo.id);
+        await setDoc(
+          photoDocRef,
+          {
+            id: photo.id,
+            url: photo.url,
+            title: photo.title || '',
+            dateOrLocation: photo.dateOrLocation || '',
+            note: photo.note || '',
+            isRevealed: Boolean(photo.isRevealed),
+            heartsCount: Number(photo.heartsCount || 0),
+            order: i,
+            updatedAt: timestamp,
+          },
+          { merge: true }
+        );
+      }
+    }
+
+    // Also mirror to app_settings/default if this is main_proposal
+    if (proposalId === DEFAULT_DOC_ID) {
+      const appSettingsRef = doc(db, 'app_settings', 'default');
+      await setDoc(appSettingsRef, mainPayload, { merge: true });
+    }
+
+    cloudSuccess = true;
+  } catch (cloudErr: any) {
+    cloudErrorMsg = cloudErr?.message || String(cloudErr);
+    console.error('Error al guardar en Cloud Firestore:', cloudErr);
+  }
+
+  // 2. Persist to local IndexedDB (instant offline load)
+  const fullLocalPayload = {
     ...settings,
     updatedAt: timestamp,
   };
 
-  // 1. Persist to Cloud Firestore so it syncs across all devices
-  try {
-    const proposalRef = doc(db, 'proposals', proposalId);
-    await setDoc(proposalRef, payload, { merge: true });
-
-    // Also update global default document if this is the main proposal
-    if (proposalId === DEFAULT_DOC_ID) {
-      const appSettingsRef = doc(db, 'app_settings', 'default');
-      await setDoc(appSettingsRef, payload, { merge: true });
-    }
-  } catch (cloudErr) {
-    console.warn('Advertencia: Firestore no pudo guardar en la nube (offline o error):', cloudErr);
-  }
-
-  // 2. Persist to local IndexedDB (instant offline availability)
   try {
     const localDb = await openDB();
     await new Promise<void>((resolve, reject) => {
       const tx = localDb.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
-      const req = store.put(payload, `settings_${proposalId}`);
+      const req = store.put(fullLocalPayload, `settings_${proposalId}`);
       req.onsuccess = () => resolve();
       req.onerror = () => reject(req.error);
     });
   } catch (err) {
-    console.warn('IndexedDB no pudo guardar, usando localStorage como respaldo:', err);
+    console.warn('IndexedDB no pudo guardar:', err);
   }
 
   // 3. Fallback cache to localStorage
   try {
-    localStorage.setItem(`${LOCAL_STORAGE_KEY}_${proposalId}`, JSON.stringify(payload));
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+    localStorage.setItem(`${LOCAL_STORAGE_KEY}_${proposalId}`, JSON.stringify(fullLocalPayload));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(fullLocalPayload));
   } catch {
     try {
+      // If local storage is full, save metadata only
       const lightSettings = {
-        ...payload,
-        photos: payload.photos.map((p) => ({
+        ...fullLocalPayload,
+        photos: fullLocalPayload.photos.map((p) => ({
           ...p,
           url: p.url.startsWith('data:') ? '' : p.url,
         })),
@@ -157,38 +222,52 @@ export async function persistSettings(settings: GameSettings, proposalId = getPr
       localStorage.setItem(`${LOCAL_STORAGE_KEY}_${proposalId}`, JSON.stringify(lightSettings));
     } catch {}
   }
+
+  return { success: cloudSuccess, error: cloudErrorMsg };
 }
 
 // Load settings from Cloud Firestore with IndexedDB/localStorage fallback
 export async function retrieveSettings(proposalId = getProposalIdFromUrl()): Promise<GameSettings | null> {
-  // 1. First attempt to load directly from Cloud Firestore (cross-device sync)
+  // 1. First attempt to load from Cloud Firestore
   try {
     const proposalRef = doc(db, 'proposals', proposalId);
     const snap = await getDoc(proposalRef);
 
     if (snap.exists()) {
-      const cloudData = snap.data() as GameSettings;
-      if (cloudData && cloudData.photos) {
-        // Cache to IndexedDB for offline instant launches
-        try {
-          const localDb = await openDB();
-          const tx = localDb.transaction(STORE_NAME, 'readwrite');
-          tx.objectStore(STORE_NAME).put(cloudData, `settings_${proposalId}`);
-        } catch {}
-        return cloudData;
-      }
-    }
+      const mainData = snap.data() as Partial<GameSettings>;
 
-    // If main_proposal was requested and not found yet, check app_settings/default
-    if (proposalId === DEFAULT_DOC_ID) {
-      const appRef = doc(db, 'app_settings', 'default');
-      const appSnap = await getDoc(appRef);
-      if (appSnap.exists()) {
-        const cloudData = appSnap.data() as GameSettings;
-        if (cloudData && cloudData.photos) {
-          return cloudData;
-        }
+      // Fetch photos from subcollection
+      const photosColRef = collection(db, 'proposals', proposalId, 'photos');
+      const photosSnap = await getDocs(photosColRef);
+
+      let fetchedPhotos: PhotoMemory[] = [];
+      if (!photosSnap.empty) {
+        fetchedPhotos = photosSnap.docs
+          .map((d) => d.data() as PhotoMemory & { order?: number })
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          .map(({ order, ...rest }) => rest as PhotoMemory);
+      } else if (Array.isArray(mainData.photos) && mainData.photos.length > 0) {
+        fetchedPhotos = mainData.photos;
       }
+
+      const combined: GameSettings = {
+        partnerName: mainData.partnerName || 'Mi Persona Favorita',
+        proposerName: mainData.proposerName || 'Tu Admirador/a',
+        questionType: mainData.questionType || 'novia',
+        customQuestion: mainData.customQuestion || '¿Quieres ser mi novia?',
+        customReason: mainData.customReason || '',
+        palette: mainData.palette || 'rose',
+        photos: fetchedPhotos.length > 0 ? fetchedPhotos : (mainData.photos || []),
+      };
+
+      // Cache to IndexedDB
+      try {
+        const localDb = await openDB();
+        const tx = localDb.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(combined, `settings_${proposalId}`);
+      } catch {}
+
+      return combined;
     }
   } catch (cloudErr) {
     console.warn('Aviso: No se pudo consultar Firestore directamente, usando almacenamiento local:', cloudErr);
@@ -209,7 +288,7 @@ export async function retrieveSettings(proposalId = getProposalIdFromUrl()): Pro
       return result;
     }
 
-    // Try default key
+    // Try fallback key
     const defaultResult = await new Promise<GameSettings | null>((resolve) => {
       const tx = localDb.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
@@ -221,10 +300,10 @@ export async function retrieveSettings(proposalId = getProposalIdFromUrl()): Pro
       return defaultResult;
     }
   } catch (err) {
-    console.warn('IndexedDB no disponible para lectura, consultando localStorage:', err);
+    console.warn('IndexedDB no disponible para lectura:', err);
   }
 
-  // 3. Fallback to localStorage v2
+  // 3. Fallback to localStorage
   try {
     const rawProposal = localStorage.getItem(`${LOCAL_STORAGE_KEY}_${proposalId}`);
     if (rawProposal) {
@@ -248,11 +327,34 @@ export function subscribeToProposalChanges(
     const proposalRef = doc(db, 'proposals', proposalId);
     return onSnapshot(
       proposalRef,
-      (snapshot) => {
+      async (snapshot) => {
         if (snapshot.exists()) {
-          const data = snapshot.data() as GameSettings;
-          if (data && data.photos) {
-            onUpdate(data);
+          const mainData = snapshot.data() as Partial<GameSettings>;
+          try {
+            const photosColRef = collection(db, 'proposals', proposalId, 'photos');
+            const photosSnap = await getDocs(photosColRef);
+
+            let photos: PhotoMemory[] = [];
+            if (!photosSnap.empty) {
+              photos = photosSnap.docs
+                .map((d) => d.data() as PhotoMemory & { order?: number })
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map(({ order, ...rest }) => rest as PhotoMemory);
+            } else if (Array.isArray(mainData.photos)) {
+              photos = mainData.photos;
+            }
+
+            onUpdate({
+              partnerName: mainData.partnerName || 'Mi Persona Favorita',
+              proposerName: mainData.proposerName || 'Tu Admirador/a',
+              questionType: mainData.questionType || 'novia',
+              customQuestion: mainData.customQuestion || '¿Quieres ser mi novia?',
+              customReason: mainData.customReason || '',
+              palette: mainData.palette || 'rose',
+              photos: photos,
+            });
+          } catch (e) {
+            console.warn('Error fetching photos in snapshot:', e);
           }
         }
       },
