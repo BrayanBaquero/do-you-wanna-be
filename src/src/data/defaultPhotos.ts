@@ -1,0 +1,68 @@
+import { PhotoMemory } from '../types';
+
+export const DEFAULT_PHOTOS: PhotoMemory[] = [
+  {
+    id: 'photo-1',
+    url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=800&q=80',
+    title: 'Nuestras Primeras Risas',
+    dateOrLocation: 'El primer café juntos',
+    note: 'Ese día no podía dejar de mirarte y me di cuenta de lo increíble que es tu sonrisa.',
+    isRevealed: false,
+    heartsCount: 0,
+  },
+  {
+    id: 'photo-2',
+    url: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=800&q=80',
+    title: 'Paseando de la Mano',
+    dateOrLocation: 'Una tarde inolvidable',
+    note: 'Caminar a tu lado hace que cualquier lugar se sienta como en casa. No quería soltarte.',
+    isRevealed: false,
+    heartsCount: 0,
+  },
+  {
+    id: 'photo-3',
+    url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=800&q=80',
+    title: 'Atardeceres Contigo',
+    dateOrLocation: 'Mirando el cielo',
+    note: 'El atardecer era hermoso, pero tú lo hacías ver mil veces más mágico y especial.',
+    isRevealed: false,
+    heartsCount: 0,
+  },
+  {
+    id: 'photo-4',
+    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
+    title: 'Nuestra Complicidad',
+    dateOrLocation: 'Nuestra foto favorita',
+    note: 'Aquí supe que estábamos destinados a ser el mejor equipo del mundo entero.',
+    isRevealed: false,
+    heartsCount: 0,
+  },
+  {
+    id: 'photo-5',
+    url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80',
+    title: 'Aventuras Inesperadas',
+    dateOrLocation: 'Una escapada perfecta',
+    note: 'Cada paseo, viaje o desvío contigo se convierte en la mejor historia que contar.',
+    isRevealed: false,
+    heartsCount: 0,
+  },
+  {
+    id: 'photo-6',
+    url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=800&q=80',
+    title: 'Miradas que lo Dicen Todo',
+    dateOrLocation: 'Bajo las luces de la ciudad',
+    note: 'No hacían falta palabras. En tus ojos encontré mi rincón favorito del universo.',
+    isRevealed: false,
+    heartsCount: 0,
+  },
+  {
+    id: 'photo-7',
+    url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80',
+    title: 'Abrazos de Amor Puro',
+    dateOrLocation: 'Un instante para siempre',
+    note: 'Tu abrazo es mi refugio seguro. Saber que te tengo me llena de paz y alegría infinita.',
+    isRevealed: false,
+    heartsCount: 0,
+  },
+];
+

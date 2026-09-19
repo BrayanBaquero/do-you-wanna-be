@@ -1,0 +1,8 @@
+{
+  "name": "Remix Propuesta de Noviazgo new",
+  "description": "Un juego interactivo, divertido y romántico para hacer una propuesta de noviazgo inolvidable.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
