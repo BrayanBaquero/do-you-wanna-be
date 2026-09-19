@@ -69,12 +69,6 @@ export const IntroStage: React.FC<IntroStageProps> = ({
         <p className="text-sm sm:text-base text-rose-800/80 max-w-md mx-auto leading-relaxed">
           He preparado este pequeño juego interactivo con mucho cariño. Para descubrir la sorpresa que te espera al final, deberás superar 4 pequeños desafíos.
         </p>
-
-        {settings.customReason && (
-          <div className="bg-rose-50/80 border border-rose-200/80 rounded-2xl p-3.5 text-xs sm:text-sm text-rose-800 italic max-w-sm mx-auto shadow-sm">
-            "{settings.customReason}"
-          </div>
-        )}
       </motion.div>
 
       {/* Interactive Action Buttons */}

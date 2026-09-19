@@ -118,16 +118,6 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
                 <Sparkles className="w-3 h-3 text-rose-500" />
               </button>
             )}
-
-            <button
-              id="btn-edit-photos-trigger"
-              onClick={onOpenPhotoEditor}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/95 hover:bg-rose-50 text-rose-700 text-xs font-semibold border border-rose-200 shadow-xs active:scale-95 transition cursor-pointer"
-              title="Sube tus fotos reales"
-            >
-              <Camera className="w-3.5 h-3.5 text-rose-500" />
-              <span>Subir / Cambiar Fotos</span>
-            </button>
           </div>
         </div>
 
