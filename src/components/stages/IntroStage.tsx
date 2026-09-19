@@ -55,10 +55,12 @@ export const IntroStage: React.FC<IntroStageProps> = ({
         transition={{ delay: 0.2, duration: 0.5 }}
         className="space-y-3 mb-8"
       >
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-100/90 text-rose-700 border border-rose-200">
-          <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-          Misión Especial de Amor
-        </span>
+        <div className="flex items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-100/90 text-rose-700 border border-rose-200">
+            <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+            Misión Especial de Amor
+          </span>
+        </div>
 
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-rose-950 tracking-tight">
           ¡Hola, <span className="text-rose-600 underline decoration-wavy decoration-rose-300">{settings.partnerName}</span>!
