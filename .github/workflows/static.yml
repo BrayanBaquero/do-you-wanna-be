@@ -24,14 +24,13 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar Node.js
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install
 
       - name: Compilar aplicación Vite
         run: npm run build
