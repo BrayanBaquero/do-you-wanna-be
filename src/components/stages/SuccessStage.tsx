@@ -72,24 +72,23 @@ export const SuccessStage: React.FC<SuccessStageProps> = ({ settings, onRestart 
   };
 
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center min-h-[76vh] px-4 py-4 max-w-2xl mx-auto text-center">
+    <div className="relative z-10 flex flex-col items-center justify-center min-h-[76vh] px-4 py-5 max-w-2xl mx-auto text-center">
       {/* Animated Victory Header */}
       <motion.div
-        initial={{ scale: 0.7, opacity: 0 }}
+        initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', duration: 0.7 }}
         className="mb-4"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-rose-300 mb-2">
-          <PartyPopper className="w-4 h-4" />
-          <span>¡DIJO QUE SÍ!</span>
-          <Sparkles className="w-4 h-4" />
+        <div className="label-caps tracking-widest text-amber-800/80 font-semibold mb-2 flex items-center justify-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+          <span>Epílogo • Para Siempre</span>
         </div>
-        <h2 className="text-3xl sm:text-4xl font-black text-rose-950">
-          ¡Oficialmente Novios! 🎉
+        <h2 className="font-display italic text-3xl sm:text-4xl lg:text-5xl font-semibold text-neutral-900 leading-tight">
+          ¡Oficialmente Juntos! 🎉
         </h2>
-        <p className="text-xs sm:text-sm text-rose-800/90 mt-1">
-          Comienza el capítulo más lindo de nuestra historia
+        <p className="font-serif text-sm sm:text-base text-neutral-600 mt-1.5">
+          Comienza el capítulo más hermoso de nuestra historia
         </p>
       </motion.div>
 
@@ -100,88 +99,91 @@ export const SuccessStage: React.FC<SuccessStageProps> = ({ settings, onRestart 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="relative w-full bg-gradient-to-b from-amber-50/95 via-white/98 to-rose-50/95 rounded-3xl border-4 border-double border-amber-300/80 p-6 sm:p-8 shadow-2xl shadow-rose-200/60 my-3 text-center print:border-black print:p-8"
+        className="relative w-full bg-[#fdfcf9] rounded-2xl border border-neutral-900/20 p-5 sm:p-8 shadow-lg my-3 text-center print:border-black print:p-8"
       >
-        {/* Certificate Seal & Ribbons */}
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-400 to-amber-500 flex items-center justify-center text-white shadow-md border-2 border-amber-200">
-            <Award className="w-7 h-7" />
-          </div>
-        </div>
-
-        <div className="text-[11px] font-mono tracking-widest text-amber-700/80 uppercase mb-1">
-          Certificado Oficial e Inquebrantable
-        </div>
-        <h3 className="text-xl sm:text-2xl font-black text-rose-950 tracking-tight mb-4">
-          Decreto de Amor y Noviazgo
-        </h3>
-
-        <div className="text-xs sm:text-sm text-rose-900/90 leading-relaxed max-w-lg mx-auto space-y-3">
-          <p>
-            Por medio del presente documento interactivo, se certifica con total felicidad que:
-          </p>
-
-          <div className="py-2.5 px-4 bg-rose-50/80 rounded-2xl border border-rose-200/80 inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-rose-900 font-bold text-sm sm:text-base">
-            <span className="text-rose-600">{settings.partnerName}</span>
-            <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
-            <span className="text-rose-600">{settings.proposerName}</span>
-          </div>
-
-          <p className="text-xs sm:text-sm text-rose-800 italic">
-            Han aceptado formalmente compartir sus días, sus risas, sus abrazos y apoyarse mutuamente en cada momento, iniciando formalmente su noviazgo.
-          </p>
-        </div>
-
-        {/* Miniature Polaroid Memories Ribbon */}
-        {settings.photos && settings.photos.length > 0 && (
-          <div className="my-3 flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 py-1 max-w-lg mx-auto">
-            {settings.photos.slice(0, 7).map((p, idx) => {
-              const angles = [-3, 2, -2, 3, -1.5, 2.5, -2];
-              return (
-                <div
-                  key={p.id || idx}
-                  className="w-11 h-14 sm:w-13 sm:h-16 bg-white p-1 rounded-lg shadow-xs border border-amber-200/90 transition-transform hover:scale-110"
-                  style={{ transform: `rotate(${angles[idx % angles.length]}deg)` }}
-                  title={p.title}
-                >
-                  <img
-                    src={p.url}
-                    alt={p.title}
-                    className="w-full h-8 sm:h-10 object-cover rounded-xs"
-                    referrerPolicy="no-referrer"
-                  />
-                  <p className="text-[7px] text-gray-700 truncate mt-0.5 text-center font-medium">
-                    {p.title}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Date and Signature Row */}
-        <div className="mt-6 pt-4 border-t border-amber-200/80 grid grid-cols-2 gap-4 text-xs">
-          <div className="flex flex-col items-center">
-            <div className="font-serif italic text-sm sm:text-base text-rose-700 font-bold border-b border-rose-300 pb-1 w-28 sm:w-36 text-center">
-              {settings.partnerName}
+        {/* Fine inner border for archival quality */}
+        <div className="border border-neutral-900/10 p-4 sm:p-6 rounded-xl">
+          {/* Certificate Seal */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-12 h-12 rounded-full bg-neutral-900 text-amber-200 flex items-center justify-center shadow-sm border border-neutral-800">
+              <Award className="w-6 h-6" />
             </div>
-            <span className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">Firma de Aceptación</span>
           </div>
 
-          <div className="flex flex-col items-center">
-            <div className="font-serif italic text-sm sm:text-base text-rose-700 font-bold border-b border-rose-300 pb-1 w-28 sm:w-36 text-center">
-              {settings.proposerName}
+          <div className="font-mono text-[10px] tracking-widest text-neutral-500 uppercase mb-1.5">
+            № 01/ETERNIDAD • DECRETO OFICIAL DE AMOR
+          </div>
+          <h3 className="font-display italic text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight mb-4">
+            Compromiso de Amor y Noviazgo
+          </h3>
+
+          <div className="font-serif text-sm sm:text-base text-neutral-700 leading-relaxed max-w-lg mx-auto space-y-3">
+            <p>
+              Por medio del presente documento, se certifica con inmensa alegría que:
+            </p>
+
+            <div className="py-2.5 px-6 bg-neutral-900/5 rounded-full border border-neutral-900/10 inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-neutral-900 font-display italic text-lg sm:text-xl font-semibold">
+              <span className="text-neutral-950">{settings.partnerName}</span>
+              <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
+              <span className="text-neutral-950">{settings.proposerName}</span>
             </div>
-            <span className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">Firma de Promesa</span>
-          </div>
-        </div>
 
-        {/* Issue Date & Stamp */}
-        <div className="mt-5 flex items-center justify-between text-[11px] text-rose-600/80 pt-2">
-          <span>📅 Fecha: <strong>{todayFormatted}</strong></span>
-          <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-            ✓ 100% Válido para Siempre
-          </span>
+            <p className="font-serif italic text-sm text-neutral-600">
+              Han aceptado formalmente compartir sus días, sus risas, sus proyectos y caminar juntos con paciencia, ternura y complicidad eterna.
+            </p>
+          </div>
+
+          {/* Miniature Polaroid Memories Ribbon */}
+          {settings.photos && settings.photos.length > 0 && (
+            <div className="my-5 flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 py-1 max-w-lg mx-auto">
+              {settings.photos.slice(0, 7).map((p, idx) => {
+                const angles = [-2, 2, -1.5, 2.5, -1, 1.8, -2];
+                return (
+                  <div
+                    key={p.id || idx}
+                    className="w-12 h-15 sm:w-14 sm:h-17 bg-[#fdfcf9] p-1 rounded-sm shadow-2xs border border-neutral-900/15 transition-transform hover:scale-110"
+                    style={{ transform: `rotate(${angles[idx % angles.length]}deg)` }}
+                    title={p.title}
+                  >
+                    <img
+                      src={p.url}
+                      alt={p.title}
+                      className="w-full h-9 sm:h-11 object-cover rounded-xs"
+                      referrerPolicy="no-referrer"
+                    />
+                    <p className="font-mono text-[7px] text-neutral-600 truncate mt-0.5 text-center font-medium">
+                      {p.title}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Date and Signature Row */}
+          <div className="mt-6 pt-5 border-t border-neutral-900/10 grid grid-cols-2 gap-4 text-xs">
+            <div className="flex flex-col items-center">
+              <div className="font-display italic text-base sm:text-lg text-neutral-900 font-semibold border-b border-neutral-400 pb-1 w-28 sm:w-36 text-center">
+                {settings.partnerName}
+              </div>
+              <span className="font-mono text-[9px] text-neutral-500 mt-1 uppercase tracking-widest">Firma de Aceptación</span>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <div className="font-display italic text-base sm:text-lg text-neutral-900 font-semibold border-b border-neutral-400 pb-1 w-28 sm:w-36 text-center">
+                {settings.proposerName}
+              </div>
+              <span className="font-mono text-[9px] text-neutral-500 mt-1 uppercase tracking-widest">Firma de Promesa</span>
+            </div>
+          </div>
+
+          {/* Issue Date & Stamp */}
+          <div className="mt-5 flex items-center justify-between text-xs font-mono text-neutral-600 pt-2 border-t border-neutral-900/5">
+            <span>FECHA: <strong>{todayFormatted}</strong></span>
+            <span className="font-mono text-[9px] uppercase tracking-widest text-[#fdfcf9] bg-neutral-900 px-2.5 py-1 rounded-full border border-neutral-800">
+              ✓ Validez Eterna
+            </span>
+          </div>
         </div>
       </motion.div>
 
@@ -190,39 +192,43 @@ export const SuccessStage: React.FC<SuccessStageProps> = ({ settings, onRestart 
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 mt-3 w-full max-w-md"
+        className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 mt-4 w-full max-w-lg"
       >
         <button
           id="btn-fire-more-confetti"
+          type="button"
           onClick={fireConfetti}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg active:scale-95 transition cursor-pointer"
+          className="group inline-flex items-center gap-1.5 px-5 py-3 bg-neutral-900 text-[#fdfcf9] hover:bg-neutral-800 border border-neutral-900 font-mono text-xs uppercase tracking-widest shadow-xs transition active:scale-95 cursor-pointer"
         >
-          <PartyPopper className="w-4 h-4" />
+          <PartyPopper className="w-4 h-4 text-amber-300" />
           <span>¡Más Confeti!</span>
         </button>
 
         <button
           id="btn-print-certificate"
+          type="button"
           onClick={handlePrint}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-rose-700 border border-rose-200 text-xs sm:text-sm font-semibold shadow-xs hover:bg-rose-50 active:scale-95 transition cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-3 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 font-mono text-xs uppercase tracking-widest shadow-2xs transition active:scale-95 cursor-pointer"
         >
-          <Printer className="w-4 h-4 text-rose-500" />
-          <span>Guardar / Imprimir</span>
+          <Printer className="w-4 h-4 text-neutral-600" />
+          <span>Imprimir</span>
         </button>
 
         <button
           id="btn-share-certificate"
+          type="button"
           onClick={handleShare}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white text-rose-700 border border-rose-200 text-xs sm:text-sm font-semibold shadow-xs hover:bg-rose-50 active:scale-95 transition cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-3 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 font-mono text-xs uppercase tracking-widest shadow-2xs transition active:scale-95 cursor-pointer"
         >
-          <Share2 className="w-4 h-4 text-rose-500" />
+          <Share2 className="w-4 h-4 text-neutral-600" />
           <span>Compartir</span>
         </button>
 
         <button
           id="btn-play-again"
+          type="button"
           onClick={onRestart}
-          className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-800 px-3 py-2 rounded-xl transition cursor-pointer"
+          className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-neutral-500 hover:text-neutral-900 px-3 py-2 transition cursor-pointer"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Jugar de nuevo</span>

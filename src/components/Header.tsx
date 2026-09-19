@@ -16,14 +16,14 @@ interface HeaderProps {
   isCloudSynced?: boolean;
 }
 
-const STAGES_ORDER: { id: GameStage; label: string; step: number }[] = [
-  { id: 'intro', label: 'Inicio', step: 0 },
-  { id: 'hearts', label: 'Corazones', step: 1 },
-  { id: 'trivia', label: 'Test del Destino', step: 2 },
-  { id: 'photos', label: 'Nuestras Fotos', step: 3 },
-  { id: 'chest', label: 'El Cofre', step: 4 },
-  { id: 'proposal', label: 'La Pregunta', step: 5 },
-  { id: 'success', label: '¡Para Siempre!', step: 6 },
+const STAGES_ORDER: { id: GameStage; label: string; chapter: string; step: number }[] = [
+  { id: 'intro', label: 'Prólogo', chapter: 'Capítulo I', step: 0 },
+  { id: 'hearts', label: 'Corazones', chapter: 'Capítulo I', step: 1 },
+  { id: 'trivia', label: 'Test del Destino', chapter: 'Capítulo II', step: 2 },
+  { id: 'photos', label: 'Nuestras Fotos', chapter: 'Capítulo III', step: 3 },
+  { id: 'chest', label: 'El Cofre', chapter: 'Capítulo IV', step: 4 },
+  { id: 'proposal', label: 'La Pregunta', chapter: 'Clímax', step: 5 },
+  { id: 'success', label: 'Para Siempre', chapter: 'Epílogo', step: 6 },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,8 +37,9 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleMute,
   isCloudSynced = true,
 }) => {
-  const currentStep = STAGES_ORDER.find((s) => s.id === currentStage)?.step ?? 0;
-  const partnerGreeting = settings.partnerName ? `Para: ${settings.partnerName}` : 'Una sorpresa especial';
+  const currentInfo = STAGES_ORDER.find((s) => s.id === currentStage) || STAGES_ORDER[0];
+  const currentStep = currentInfo.step;
+  const partnerGreeting = settings.partnerName ? `Para: ${settings.partnerName}` : 'Para Ti';
   const activePalette = PALETTES.find((p) => p.id === settings.palette) || PALETTES[0];
 
   const [isPlayingMusic, setIsPlayingMusic] = useState<boolean>(sound.isPlayingMusic);
@@ -52,62 +53,65 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   return (
-    <header className="relative z-20 w-full max-w-4xl mx-auto px-4 pt-4 pb-2 flex flex-col gap-2.5">
-      <div className="flex items-center justify-between">
-        {/* Brand / Title */}
-        <div className="flex items-center gap-2">
-          <span className="text-2xl animate-pulse">💌</span>
-          <div>
-            <h1 className="text-sm md:text-base font-bold text-rose-900 tracking-tight flex items-center gap-1.5 flex-wrap">
-              <span>Nuestra Historia</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-medium">
-                {partnerGreeting}
+    <header className="relative z-20 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-5 pb-3 flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-4">
+        {/* Editorial Left Header */}
+        <div className="max-w-md">
+          <div className="label-caps mb-1 tracking-widest text-[10px] sm:text-xs">
+            {currentInfo.chapter} • {currentInfo.label}
+          </div>
+          <h1 className="font-display italic text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight leading-none mb-1.5">
+            Nuestra Historia
+          </h1>
+          <div className="inline-flex items-center gap-1.5 font-mono text-[11px] sm:text-xs px-2.5 py-0.5 rounded-full bg-neutral-900/5 text-neutral-800 border border-neutral-900/10 select-none">
+            <span>{partnerGreeting}</span>
+            {isCloudSynced && (
+              <span title="Sincronizado en la nube" className="text-[10px] opacity-75">
+                ☁️
               </span>
-              <span
-                title="Sincronizado permanentemente en la nube con Firebase"
-                className="inline-flex items-center text-xs px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 select-none"
-              >
-                <span>☁️</span>
-              </span>
-            </h1>
-            <p className="text-[11px] text-rose-500 font-medium">Un juego con mucho amor</p>
+            )}
           </div>
         </div>
 
-        {/* Action Controls */}
+        {/* Editorial Toolbar */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Quick Palette Switcher button */}
+          {/* Palette button */}
           <button
             id="btn-palette-toggle"
+            type="button"
             onClick={onOpenPalette}
-            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-xl bg-white/90 hover:bg-rose-50 text-rose-700 border border-rose-200 shadow-xs transition-all active:scale-95 cursor-pointer"
-            title="Cambiar paleta de colores"
+            className="btn-circle text-base sm:text-lg"
+            title="Cambiar paleta de color"
           >
-            <Palette className="w-3.5 h-3.5 text-rose-500" />
-            <span className="text-xs">{activePalette.emoji}</span>
+            <span>{activePalette.emoji}</span>
           </button>
 
+          {/* Settings button */}
           <button
             id="btn-settings-toggle"
+            type="button"
             onClick={onOpenSettings}
-            className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-xl bg-white/90 hover:bg-rose-50 text-rose-700 border border-rose-200 shadow-xs transition-all active:scale-95 cursor-pointer"
-            title="Personalizar nombres y mensaje"
+            className="btn-circle text-neutral-700"
+            title="Personalizar propuesta"
           >
-            <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+            <Sparkles className="w-4 h-4" />
           </button>
 
+          {/* Share Pill Button */}
           {onOpenShare && (
             <button
               id="btn-share-toggle"
+              type="button"
               onClick={onOpenShare}
-              className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-medium shadow-xs transition-all active:scale-95 cursor-pointer"
-              title="Compartir enlace para abrir en otro celular o dispositivo"
+              className="btn-pill-editorial shadow-xs"
+              title="Compartir enlace"
             >
               <Share2 className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Compartir</span>
             </button>
           )}
 
+          {/* Background Music Toggle */}
           {Boolean(settings.customAudioUrl && settings.backgroundMusicEnabled !== false) && (
             <button
               id="btn-music-toggle"
@@ -117,10 +121,10 @@ export const Header: React.FC<HeaderProps> = ({
                 e.stopPropagation();
                 sound.toggleMusic();
               }}
-              className={`p-1.5 rounded-xl border shadow-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center ${
+              className={`btn-circle ${
                 isPlayingMusic
-                  ? 'bg-rose-500 text-white border-rose-600 shadow-rose-200 ring-2 ring-rose-300/60'
-                  : 'bg-white/90 hover:bg-rose-50 text-rose-500 border-rose-200'
+                  ? 'bg-neutral-900 text-amber-200 border-neutral-900 ring-2 ring-amber-300/40'
+                  : 'text-neutral-700'
               }`}
               title={isPlayingMusic ? 'Pausar música de fondo' : 'Reproducir música de fondo'}
               aria-label="Toggle música de fondo"
@@ -129,27 +133,31 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
+          {/* Sound FX Toggle */}
           <button
             id="btn-sound-toggle"
+            type="button"
             onClick={() => {
               onToggleMute();
               if (isMuted) {
                 sound.playPop();
               }
             }}
-            className="p-1.5 rounded-xl bg-white/90 hover:bg-rose-50 text-rose-700 border border-rose-200 shadow-xs transition-all active:scale-95 cursor-pointer"
-            title={isMuted ? 'Activar sonido' : 'Silenciar sonido'}
+            className="btn-circle text-neutral-700"
+            title={isMuted ? 'Activar sonido' : 'Silenciar'}
             aria-label="Toggle sonido"
           >
-            {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-rose-600" />}
+            {isMuted ? <VolumeX className="w-4 h-4 text-neutral-400" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
+          {/* Restart Button */}
           {currentStage !== 'intro' && (
             <button
               id="btn-restart-game"
+              type="button"
               onClick={onReset}
-              className="p-1.5 rounded-xl bg-white/90 hover:bg-rose-50 text-rose-600 border border-rose-200 shadow-xs transition-all active:scale-95 cursor-pointer"
-              title="Reiniciar juego"
+              className="btn-circle text-neutral-600"
+              title="Volver al inicio"
               aria-label="Reiniciar juego"
             >
               <RotateCcw className="w-4 h-4" />
@@ -158,11 +166,11 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Progress Bar (visible during active stages) */}
+      {/* Editorial Progress Line (visible during active stages) */}
       {currentStage !== 'intro' && (
-        <div className="w-full bg-rose-100/80 rounded-full h-2 p-0.5 overflow-hidden shadow-inner">
+        <div className="w-full bg-neutral-900/10 h-1 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-rose-400 to-pink-500 rounded-full transition-all duration-500"
+            className="h-full bg-neutral-900 rounded-full transition-all duration-500"
             style={{ width: `${Math.min(100, (currentStep / 5) * 100)}%` }}
           />
         </div>

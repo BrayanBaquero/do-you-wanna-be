@@ -70,21 +70,21 @@ export const TriviaStage: React.FC<TriviaStageProps> = ({ onNext, partnerName })
     <div className="relative z-10 flex flex-col items-center justify-between min-h-[72vh] px-4 py-3 max-w-xl mx-auto text-center">
       {/* Stage Header */}
       <div className="w-full">
-        <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-rose-100 text-rose-700 mb-1.5 border border-rose-200">
-          <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-          Desafío 2 de 4: Test del Destino
-        </span>
-        <h2 className="text-xl sm:text-2xl font-black text-rose-950">
+        <div className="label-caps mb-1.5 tracking-widest text-amber-800/80 font-semibold flex items-center justify-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+          <span>Capítulo II • Desafío 2 de 4</span>
+        </div>
+        <h2 className="font-display italic text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 leading-tight">
           ¿Qué tan compatibles somos?
         </h2>
-        <p className="text-xs sm:text-sm text-rose-700/80 mt-1">
+        <p className="font-serif text-sm sm:text-base text-neutral-600 mt-1">
           Pregunta {Math.min(currentQIndex + 1, QUESTIONS.length)} de {QUESTIONS.length}
         </p>
 
         {/* Compatibility progress indicator */}
         <div className="mt-3 flex items-center justify-center gap-2">
-          <Flame className="w-4 h-4 text-rose-500 fill-rose-500" />
-          <span className="text-xs font-bold text-rose-800">
+          <Flame className="w-4 h-4 text-amber-600 fill-amber-600" />
+          <span className="font-mono text-xs font-semibold text-neutral-700">
             Nivel de Química: {Math.min(100, Math.round(((answeredCount + (selectedReaction ? 1 : 0)) / QUESTIONS.length) * 100))}%
           </span>
         </div>
@@ -98,9 +98,9 @@ export const TriviaStage: React.FC<TriviaStageProps> = ({ onNext, partnerName })
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="bg-white/85 backdrop-blur-md rounded-3xl border border-rose-200 p-5 sm:p-6 shadow-xl text-left"
+            className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-900/10 p-5 sm:p-6 shadow-sm text-left"
           >
-            <h3 className="text-base sm:text-lg font-bold text-rose-950 mb-4 text-center">
+            <h3 className="font-display italic text-lg sm:text-xl text-neutral-900 mb-4 text-center">
               "{currentQ.title}"
             </h3>
 
@@ -113,14 +113,16 @@ export const TriviaStage: React.FC<TriviaStageProps> = ({ onNext, partnerName })
                   onClick={() => handleSelectOption(option.reaction)}
                   className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer ${
                     selectedReaction === option.reaction
-                      ? 'border-rose-500 bg-rose-50 text-rose-950 font-semibold ring-2 ring-rose-300'
-                      : 'border-rose-100 bg-white/90 hover:bg-rose-50/70 hover:border-rose-300 text-rose-900 shadow-sm active:scale-[0.99]'
+                      ? 'border-neutral-900 bg-neutral-900 text-white font-medium shadow-sm'
+                      : 'border-neutral-200/80 bg-white/90 hover:bg-neutral-50 hover:border-neutral-400 text-neutral-800 shadow-2xs active:scale-[0.99]'
                   }`}
                 >
-                  <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-700 text-xs flex items-center justify-center font-bold shrink-0 mt-0.5">
+                  <span className={`w-6 h-6 rounded-full text-xs flex items-center justify-center font-mono shrink-0 mt-0.5 ${
+                    selectedReaction === option.reaction ? 'bg-white text-neutral-900' : 'bg-neutral-100 text-neutral-700'
+                  }`}>
                     {String.fromCharCode(65 + idx)}
                   </span>
-                  <span className="text-xs sm:text-sm">{option.text}</span>
+                  <span className="font-serif text-sm sm:text-base leading-snug">{option.text}</span>
                 </button>
               ))}
             </div>
@@ -131,7 +133,7 @@ export const TriviaStage: React.FC<TriviaStageProps> = ({ onNext, partnerName })
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-3 bg-rose-500 text-white text-xs sm:text-sm font-medium rounded-xl text-center shadow-md"
+                  className="mt-4 p-3 bg-neutral-900 text-[#fdfcf9] font-serif text-xs sm:text-sm font-medium rounded-xl text-center shadow-md border border-neutral-800"
                 >
                   ✨ {selectedReaction}
                 </motion.div>
@@ -142,29 +144,30 @@ export const TriviaStage: React.FC<TriviaStageProps> = ({ onNext, partnerName })
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white/95 backdrop-blur-md rounded-3xl border border-rose-200 p-6 shadow-xl"
+            className="bg-white/95 backdrop-blur-md rounded-3xl border border-neutral-900/10 p-6 shadow-sm"
           >
-            <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+            <div className="w-16 h-16 bg-neutral-900/5 text-neutral-800 rounded-full flex items-center justify-center mx-auto mb-3 border border-neutral-900/10">
               <span className="text-3xl">💘</span>
             </div>
-            <h3 className="text-xl font-black text-rose-950">
+            <h3 className="font-display italic text-2xl sm:text-3xl font-semibold text-neutral-900">
               ¡100% Compatibilidad Absoluta!
             </h3>
-            <p className="text-sm text-rose-800/90 mt-2 max-w-sm mx-auto leading-relaxed">
+            <p className="font-serif text-base text-neutral-600 mt-2 max-w-sm mx-auto leading-relaxed">
               Los astros, la química y el destino no se equivocan: {partnerName} y tú son la combinación más perfecta.
             </p>
 
             <div className="mt-6">
               <button
                 id="btn-next-to-photos"
+                type="button"
                 onClick={() => {
                   sound.playChime();
                   onNext();
                 }}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-sm shadow-lg shadow-rose-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer"
+                className="group inline-flex items-center gap-2.5 px-7 py-3.5 bg-neutral-900 text-[#fdfcf9] hover:bg-neutral-800 border border-neutral-900 font-mono text-xs sm:text-sm uppercase tracking-widest transition-all duration-200 shadow-sm cursor-pointer active:scale-[0.98]"
               >
                 <span>Ver Nuestro Álbum de Fotos</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </motion.div>

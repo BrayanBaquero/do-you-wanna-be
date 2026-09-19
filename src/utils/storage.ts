@@ -17,6 +17,39 @@ const STORE_NAME = 'app_state';
 const LOCAL_STORAGE_KEY = 'propuesta_noviazgo_settings_v2';
 const DEFAULT_DOC_ID = 'main_proposal';
 
+// In-memory & session flag to prevent infinite backoff retries when quota is reached
+let isQuotaExceededSession = false;
+try {
+  if (typeof window !== 'undefined') {
+    const quotaItem = sessionStorage.getItem('firestore_quota_exceeded');
+    if (quotaItem) {
+      const parsed = JSON.parse(quotaItem);
+      if (Date.now() - (parsed.time || 0) < 12 * 60 * 60 * 1000) {
+        isQuotaExceededSession = true;
+      }
+    }
+  }
+} catch {}
+
+export function isQuotaLimitReached(): boolean {
+  return isQuotaExceededSession;
+}
+
+export function markQuotaExceeded(): void {
+  isQuotaExceededSession = true;
+  try {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('firestore_quota_exceeded', JSON.stringify({ time: Date.now() }));
+    }
+  } catch {}
+}
+
+export interface PersistResult {
+  success: boolean;
+  quotaExceeded?: boolean;
+  error?: string;
+}
+
 // Helper to get active proposal ID from URL search params (?p=xyz) or fallback to main_proposal
 export function getProposalIdFromUrl(): string {
   if (typeof window === 'undefined') return DEFAULT_DOC_ID;
@@ -115,8 +148,11 @@ export function compressImageFile(
 }
 
 // Save complete settings to Cloud Firestore AND local storage/IndexedDB
-// Uses Firestore subcollections for photos to guarantee we never exceed document size limits
-export async function persistSettings(settings: GameSettings, proposalId = getProposalIdFromUrl()): Promise<{ success: boolean; error?: string }> {
+// Optimized to write everything in a single document whenever possible to conserve quota
+export async function persistSettings(
+  settings: GameSettings,
+  proposalId = getProposalIdFromUrl()
+): Promise<PersistResult> {
   const timestamp = Date.now();
 
   const isSmallAudio = Boolean(settings.customAudioUrl && settings.customAudioUrl.length < 350000);
@@ -128,6 +164,7 @@ export async function persistSettings(settings: GameSettings, proposalId = getPr
     customQuestion: settings.customQuestion || '¿Quieres ser mi novia?',
     customReason: settings.customReason || '',
     palette: settings.palette || 'rose',
+    photos: settings.photos || [],
     photoCount: settings.photos?.length || 0,
     customAudioName: settings.customAudioName || '',
     customAudioVolume: settings.customAudioVolume ?? 0.5,
@@ -138,87 +175,35 @@ export async function persistSettings(settings: GameSettings, proposalId = getPr
   };
 
   let cloudSuccess = false;
+  let quotaExceededFlag = false;
   let cloudErrorMsg: string | undefined;
 
-  // 1. Persist to Cloud Firestore
-  try {
-    const proposalRef = doc(db, 'proposals', proposalId);
-    await setDoc(proposalRef, mainPayload, { merge: true });
+  // 1. Persist to Cloud Firestore (if quota not exceeded)
+  if (isQuotaLimitReached()) {
+    quotaExceededFlag = true;
+    cloudErrorMsg = 'Cuota diaria de Firestore superada. Los datos se guardan con seguridad de forma local.';
+  } else {
+    try {
+      const proposalRef = doc(db, 'proposals', proposalId);
+      // Single write for atomic, quota-friendly storage
+      await setDoc(proposalRef, mainPayload, { merge: true });
+      cloudSuccess = true;
+    } catch (cloudErr: any) {
+      const isQuota =
+        cloudErr?.code === 'resource-exhausted' ||
+        String(cloudErr?.message || '').includes('Quota exceeded') ||
+        String(cloudErr?.message || '').includes('resource-exhausted');
 
-    // Save audio chunks in subcollection if audio exceeds single document limit
-    if (settings.customAudioUrl && !isSmallAudio) {
-      const audioChunksCol = collection(db, 'proposals', proposalId, 'audio_chunks');
-      const oldAudioSnaps = await getDocs(audioChunksCol);
-      for (const d of oldAudioSnaps.docs) {
-        await deleteDoc(d.ref);
-      }
-
-      const CHUNK_SIZE = 350000;
-      const totalChunks = Math.ceil(settings.customAudioUrl.length / CHUNK_SIZE);
-      for (let i = 0; i < totalChunks; i++) {
-        const chunkData = settings.customAudioUrl.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-        await setDoc(doc(db, 'proposals', proposalId, 'audio_chunks', `c_${i}`), {
-          index: i,
-          total: totalChunks,
-          data: chunkData,
-        });
-      }
-    } else if (!settings.customAudioUrl) {
-      try {
-        const audioChunksCol = collection(db, 'proposals', proposalId, 'audio_chunks');
-        const oldAudioSnaps = await getDocs(audioChunksCol);
-        for (const d of oldAudioSnaps.docs) {
-          await deleteDoc(d.ref);
-        }
-      } catch {}
-    }
-
-    // Save individual photos in subcollection: proposals/{proposalId}/photos/{photoId}
-    if (settings.photos && settings.photos.length > 0) {
-      const photosColRef = collection(db, 'proposals', proposalId, 'photos');
-      const existingDocsSnap = await getDocs(photosColRef);
-      const existingDocIds = new Set(existingDocsSnap.docs.map((d) => d.id));
-      const currentPhotoIds = new Set(settings.photos.map((p) => p.id));
-
-      // Remove deleted photos
-      for (const oldId of existingDocIds) {
-        if (!currentPhotoIds.has(oldId)) {
-          await deleteDoc(doc(db, 'proposals', proposalId, 'photos', oldId));
-        }
-      }
-
-      // Save each photo as its own document (safely fits in Firestore)
-      for (let i = 0; i < settings.photos.length; i++) {
-        const photo = settings.photos[i];
-        const photoDocRef = doc(db, 'proposals', proposalId, 'photos', photo.id);
-        await setDoc(
-          photoDocRef,
-          {
-            id: photo.id,
-            url: photo.url,
-            title: photo.title || '',
-            dateOrLocation: photo.dateOrLocation || '',
-            note: photo.note || '',
-            isRevealed: Boolean(photo.isRevealed),
-            heartsCount: Number(photo.heartsCount || 0),
-            order: i,
-            updatedAt: timestamp,
-          },
-          { merge: true }
-        );
+      if (isQuota) {
+        markQuotaExceeded();
+        quotaExceededFlag = true;
+        cloudErrorMsg = 'Cuota diaria de Firestore superada.';
+        console.warn('Límite de cuota gratuita alcanzado en Firestore. Pasando a almacenamiento local seguro.');
+      } else {
+        cloudErrorMsg = cloudErr?.message || String(cloudErr);
+        console.warn('Aviso al guardar en Cloud Firestore (usando respaldo local):', cloudErr?.message || cloudErr);
       }
     }
-
-    // Also mirror to app_settings/default if this is main_proposal
-    if (proposalId === DEFAULT_DOC_ID) {
-      const appSettingsRef = doc(db, 'app_settings', 'default');
-      await setDoc(appSettingsRef, mainPayload, { merge: true });
-    }
-
-    cloudSuccess = true;
-  } catch (cloudErr: any) {
-    cloudErrorMsg = cloudErr?.message || String(cloudErr);
-    console.error('Error al guardar en Cloud Firestore:', cloudErr);
   }
 
   // 2. Persist to local IndexedDB (instant offline load)
@@ -258,74 +243,88 @@ export async function persistSettings(settings: GameSettings, proposalId = getPr
     } catch {}
   }
 
-  return { success: cloudSuccess, error: cloudErrorMsg };
+  return {
+    success: cloudSuccess,
+    quotaExceeded: quotaExceededFlag || isQuotaLimitReached(),
+    error: cloudErrorMsg,
+  };
 }
 
 // Load settings from Cloud Firestore with IndexedDB/localStorage fallback
 export async function retrieveSettings(proposalId = getProposalIdFromUrl()): Promise<GameSettings | null> {
-  // 1. First attempt to load from Cloud Firestore
-  try {
-    const proposalRef = doc(db, 'proposals', proposalId);
-    const snap = await getDoc(proposalRef);
+  // 1. First attempt to load from Cloud Firestore if quota is not reached
+  if (!isQuotaLimitReached()) {
+    try {
+      const proposalRef = doc(db, 'proposals', proposalId);
+      const snap = await getDoc(proposalRef);
 
-    if (snap.exists()) {
-      const mainData = snap.data() as Partial<GameSettings>;
+      if (snap.exists()) {
+        const mainData = snap.data() as Partial<GameSettings>;
 
-      // Fetch photos from subcollection
-      const photosColRef = collection(db, 'proposals', proposalId, 'photos');
-      const photosSnap = await getDocs(photosColRef);
-
-      let fetchedPhotos: PhotoMemory[] = [];
-      if (!photosSnap.empty) {
-        fetchedPhotos = photosSnap.docs
-          .map((d) => d.data() as PhotoMemory & { order?: number })
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-          .map(({ order, ...rest }) => rest as PhotoMemory);
-      } else if (Array.isArray(mainData.photos) && mainData.photos.length > 0) {
-        fetchedPhotos = mainData.photos;
-      }
-
-      // Fetch audio (either stored directly or reassembled from audio_chunks)
-      let customAudioUrl = (mainData as any).customAudioUrl || '';
-      if (!customAudioUrl && (mainData as any).hasCustomAudio) {
-        try {
-          const audioChunksCol = collection(db, 'proposals', proposalId, 'audio_chunks');
-          const audioSnap = await getDocs(audioChunksCol);
-          if (!audioSnap.empty) {
-            const chunks = audioSnap.docs.map((d) => d.data() as { index: number; data: string });
-            chunks.sort((a, b) => a.index - b.index);
-            customAudioUrl = chunks.map((c) => c.data).join('');
-          }
-        } catch (e) {
-          console.warn('Error al recuperar chunks de audio de Firestore:', e);
+        let fetchedPhotos: PhotoMemory[] = [];
+        if (Array.isArray(mainData.photos) && mainData.photos.length > 0) {
+          fetchedPhotos = mainData.photos;
+        } else {
+          try {
+            // Check subcollection for legacy data
+            const photosColRef = collection(db, 'proposals', proposalId, 'photos');
+            const photosSnap = await getDocs(photosColRef);
+            if (!photosSnap.empty) {
+              fetchedPhotos = photosSnap.docs
+                .map((d) => d.data() as PhotoMemory & { order?: number })
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map(({ order, ...rest }) => rest as PhotoMemory);
+            }
+          } catch {}
         }
+
+        // Fetch audio
+        let customAudioUrl = (mainData as any).customAudioUrl || '';
+        if (!customAudioUrl && (mainData as any).hasCustomAudio) {
+          try {
+            const audioChunksCol = collection(db, 'proposals', proposalId, 'audio_chunks');
+            const audioSnap = await getDocs(audioChunksCol);
+            if (!audioSnap.empty) {
+              const chunks = audioSnap.docs.map((d) => d.data() as { index: number; data: string });
+              chunks.sort((a, b) => a.index - b.index);
+              customAudioUrl = chunks.map((c) => c.data).join('');
+            }
+          } catch {}
+        }
+
+        const combined: GameSettings = {
+          partnerName: mainData.partnerName || 'Mi Persona Favorita',
+          proposerName: mainData.proposerName || 'Tu Admirador/a',
+          questionType: mainData.questionType || 'novia',
+          customQuestion: mainData.customQuestion || '¿Quieres ser mi novia?',
+          customReason: mainData.customReason || '',
+          palette: mainData.palette || 'rose',
+          photos: fetchedPhotos.length > 0 ? fetchedPhotos : (mainData.photos || []),
+          customAudioUrl: customAudioUrl || undefined,
+          customAudioName: (mainData as any).customAudioName || undefined,
+          customAudioVolume: (mainData as any).customAudioVolume ?? 0.5,
+          backgroundMusicEnabled: (mainData as any).backgroundMusicEnabled !== false,
+        };
+
+        // Cache to IndexedDB
+        try {
+          const localDb = await openDB();
+          const tx = localDb.transaction(STORE_NAME, 'readwrite');
+          tx.objectStore(STORE_NAME).put(combined, `settings_${proposalId}`);
+        } catch {}
+
+        return combined;
       }
-
-      const combined: GameSettings = {
-        partnerName: mainData.partnerName || 'Mi Persona Favorita',
-        proposerName: mainData.proposerName || 'Tu Admirador/a',
-        questionType: mainData.questionType || 'novia',
-        customQuestion: mainData.customQuestion || '¿Quieres ser mi novia?',
-        customReason: mainData.customReason || '',
-        palette: mainData.palette || 'rose',
-        photos: fetchedPhotos.length > 0 ? fetchedPhotos : (mainData.photos || []),
-        customAudioUrl: customAudioUrl || undefined,
-        customAudioName: (mainData as any).customAudioName || undefined,
-        customAudioVolume: (mainData as any).customAudioVolume ?? 0.5,
-        backgroundMusicEnabled: (mainData as any).backgroundMusicEnabled !== false,
-      };
-
-      // Cache to IndexedDB
-      try {
-        const localDb = await openDB();
-        const tx = localDb.transaction(STORE_NAME, 'readwrite');
-        tx.objectStore(STORE_NAME).put(combined, `settings_${proposalId}`);
-      } catch {}
-
-      return combined;
+    } catch (cloudErr: any) {
+      if (
+        cloudErr?.code === 'resource-exhausted' ||
+        String(cloudErr?.message || '').includes('Quota exceeded') ||
+        String(cloudErr?.message || '').includes('resource-exhausted')
+      ) {
+        markQuotaExceeded();
+      }
+      console.warn('Aviso: Usando almacenamiento local:', cloudErr?.message || cloudErr);
     }
-  } catch (cloudErr) {
-    console.warn('Aviso: No se pudo consultar Firestore directamente, usando almacenamiento local:', cloudErr);
   }
 
   // 2. Fallback to IndexedDB
@@ -378,6 +377,9 @@ export function subscribeToProposalChanges(
   onUpdate: (data: GameSettings) => void,
   proposalId = getProposalIdFromUrl()
 ): () => void {
+  if (isQuotaLimitReached()) {
+    return () => {};
+  }
   try {
     const proposalRef = doc(db, 'proposals', proposalId);
     return onSnapshot(
@@ -385,40 +387,45 @@ export function subscribeToProposalChanges(
       async (snapshot) => {
         if (snapshot.exists()) {
           const mainData = snapshot.data() as Partial<GameSettings>;
-          try {
-            const photosColRef = collection(db, 'proposals', proposalId, 'photos');
-            const photosSnap = await getDocs(photosColRef);
-
-            let photos: PhotoMemory[] = [];
-            if (!photosSnap.empty) {
-              photos = photosSnap.docs
-                .map((d) => d.data() as PhotoMemory & { order?: number })
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                .map(({ order, ...rest }) => rest as PhotoMemory);
-            } else if (Array.isArray(mainData.photos)) {
-              photos = mainData.photos;
-            }
-
-            onUpdate({
-              partnerName: mainData.partnerName || 'Mi Persona Favorita',
-              proposerName: mainData.proposerName || 'Tu Admirador/a',
-              questionType: mainData.questionType || 'novia',
-              customQuestion: mainData.customQuestion || '¿Quieres ser mi novia?',
-              customReason: mainData.customReason || '',
-              palette: mainData.palette || 'rose',
-              photos: photos,
-              customAudioUrl: (mainData as any).customAudioUrl,
-              customAudioName: (mainData as any).customAudioName,
-              customAudioVolume: (mainData as any).customAudioVolume ?? 0.5,
-              backgroundMusicEnabled: (mainData as any).backgroundMusicEnabled !== false,
-            });
-          } catch (e) {
-            console.warn('Error fetching photos in snapshot:', e);
+          let photos: PhotoMemory[] = [];
+          if (Array.isArray(mainData.photos) && mainData.photos.length > 0) {
+            photos = mainData.photos;
+          } else {
+            try {
+              const photosColRef = collection(db, 'proposals', proposalId, 'photos');
+              const photosSnap = await getDocs(photosColRef);
+              if (!photosSnap.empty) {
+                photos = photosSnap.docs
+                  .map((d) => d.data() as PhotoMemory & { order?: number })
+                  .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                  .map(({ order, ...rest }) => rest as PhotoMemory);
+              }
+            } catch {}
           }
+
+          onUpdate({
+            partnerName: mainData.partnerName || 'Mi Persona Favorita',
+            proposerName: mainData.proposerName || 'Tu Admirador/a',
+            questionType: mainData.questionType || 'novia',
+            customQuestion: mainData.customQuestion || '¿Quieres ser mi novia?',
+            customReason: mainData.customReason || '',
+            palette: mainData.palette || 'rose',
+            photos: photos,
+            customAudioUrl: (mainData as any).customAudioUrl,
+            customAudioName: (mainData as any).customAudioName,
+            customAudioVolume: (mainData as any).customAudioVolume ?? 0.5,
+            backgroundMusicEnabled: (mainData as any).backgroundMusicEnabled !== false,
+          });
         }
       },
       (error) => {
-        console.warn('Error en la suscripción en tiempo real de Firestore:', error);
+        if (
+          error?.code === 'resource-exhausted' ||
+          String(error?.message || '').includes('Quota exceeded')
+        ) {
+          markQuotaExceeded();
+        }
+        console.warn('Aviso en suscripción en tiempo real de Firestore:', error?.message || error);
       }
     );
   } catch (err) {

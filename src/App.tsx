@@ -91,16 +91,18 @@ export default function App() {
           }));
           setIsCloudSynced(true);
         } else {
-          // If cloud has no customized document yet, check if this browser has local settings
-          // If so, automatically seed and upload them to Firestore so they are visible on GitHub!
+          // If cloud has no customized document, load local settings into memory safely without writing to cloud
           try {
             const saved = localStorage.getItem(STORAGE_KEY_FALLBACK);
             if (saved) {
               const parsed = JSON.parse(saved);
-              if (parsed && (parsed.partnerName !== DEFAULT_SETTINGS.partnerName || parsed.customReason || parsed.photos?.length)) {
-                console.log('Sincronizando automáticamente ajustes locales con la nube...');
-                await persistSettings(parsed);
-                setIsCloudSynced(true);
+              if (parsed) {
+                setSettings((prev) => ({
+                  ...prev,
+                  ...parsed,
+                  palette: parsed.palette || prev.palette || 'rose',
+                  photos: resolvePhotos(parsed.photos),
+                }));
               }
             }
           } catch {}
@@ -146,23 +148,28 @@ export default function App() {
 
   const handleSaveSettings = async (newSettings: GameSettings) => {
     setSettings(newSettings);
-    setCloudToast({ message: 'Guardando en la nube...', type: 'info' });
+    setCloudToast({ message: 'Guardando ajustes...', type: 'info' });
 
     try {
       const result = await persistSettings(newSettings);
       if (result.success) {
         setIsCloudSynced(true);
-        setCloudToast({ message: '¡Guardado en la nube! Se verá en cualquier celular y en GitHub.', type: 'success' });
+        setCloudToast({ message: '¡Guardado en la nube! Se verá en cualquier celular.', type: 'success' });
+      } else if (result.quotaExceeded) {
+        setCloudToast({
+          message: 'Guardado con éxito en este dispositivo. (Cuota diaria gratuita de Firestore completada; se restablece mañana)',
+          type: 'info',
+        });
       } else {
-        setCloudToast({ message: 'Guardado localmente. Revisando conexión a la nube...', type: 'info' });
+        setCloudToast({ message: 'Guardado localmente en este dispositivo.', type: 'info' });
       }
     } catch {
-      setCloudToast({ message: 'Guardado localmente en tu dispositivo.', type: 'info' });
+      setCloudToast({ message: 'Guardado localmente en este dispositivo.', type: 'info' });
     }
 
     setTimeout(() => {
       setCloudToast(null);
-    }, 4000);
+    }, 4500);
   };
 
   const handlePaletteSelect = (newPalette: ColorPalette) => {
@@ -189,8 +196,8 @@ export default function App() {
   return (
     <div
       data-theme={settings.palette || 'rose'}
-      style={{ background: 'var(--theme-bg-gradient, linear-gradient(to bottom, #fff1f2, #ffe4e6 70%, #fef2f2))' }}
-      className="relative min-h-screen w-full text-gray-900 font-sans flex flex-col justify-between selection:bg-rose-200 selection:text-rose-900 overflow-x-hidden transition-colors duration-500"
+      style={{ background: 'var(--theme-bg-gradient, linear-gradient(to bottom, #fdfcf9, #fbf7ee 70%, #f7f1e3))' }}
+      className="relative min-h-screen w-full text-neutral-900 font-serif flex flex-col justify-between selection:bg-[#d4a373] selection:text-white overflow-x-hidden paper-noise transition-colors duration-500"
     >
       {/* Dynamic Animated Ambient Hearts matching active palette */}
       <BackgroundHearts palette={settings.palette || 'rose'} />
@@ -317,9 +324,14 @@ export default function App() {
         </div>
       )}
 
-      {/* Subtle Footer */}
-      <footer className="relative z-20 py-2.5 text-center text-[11px] text-rose-500/80 select-none">
-        Hecho con amor y dedicación 💕
+      {/* Editorial Footer (Variation 3) */}
+      <footer className="relative z-20 px-4 sm:px-8 py-4 border-t border-neutral-900/[0.08] flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] font-mono select-none">
+        <div className="label-caps tracking-widest text-neutral-500">
+          EDICIÓN ESPECIAL // {new Date().getFullYear()}
+        </div>
+        <div className="label-caps tracking-widest text-neutral-600 font-medium">
+          Hecho con amor y dedicación 💕
+        </div>
       </footer>
     </div>
   );
