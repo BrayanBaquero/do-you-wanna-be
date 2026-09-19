@@ -85,37 +85,39 @@ export const ProposalStage: React.FC<ProposalStageProps> = ({ settings, onAccept
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ duration: 0.5, type: 'spring' }}
-        className="relative w-full bg-gradient-to-b from-amber-50/90 via-white/95 to-rose-50/90 backdrop-blur-md rounded-3xl border-2 border-rose-200/90 p-6 sm:p-8 shadow-2xl shadow-rose-200/50 overflow-hidden"
+        className="relative w-full bg-[#fdfcf9] backdrop-blur-md rounded-3xl border border-neutral-900/15 p-6 sm:p-9 shadow-xl overflow-hidden"
       >
-        {/* Decorative corner florals/stamps */}
-        <div className="absolute top-3 left-3 text-xs font-mono text-rose-300 select-none">
-          № 01/INF
-        </div>
-        <div className="absolute top-3 right-3 flex items-center gap-1 text-xs font-semibold text-rose-600 bg-rose-100/80 px-2.5 py-1 rounded-full border border-rose-200">
-          <Sparkles className="w-3 h-3 text-rose-500" />
-          <span>Pregunta Oficial</span>
+        {/* Decorative stamp & label */}
+        <div className="flex items-center justify-between border-b border-neutral-900/10 pb-3 mb-5">
+          <div className="font-mono text-[10px] uppercase tracking-widest text-neutral-400 select-none">
+            № 01/INF • ARCHIVO OFICIAL
+          </div>
+          <div className="label-caps tracking-widest text-amber-800 font-semibold flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3 text-amber-700" />
+            <span>Capítulo Final</span>
+          </div>
         </div>
 
         {/* Wax seal heart icon */}
-        <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-tr from-rose-600 to-red-500 flex items-center justify-center shadow-lg shadow-rose-400/50 border-2 border-rose-200">
-          <Heart className="w-7 h-7 fill-white text-white animate-pulse" />
+        <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-neutral-900 text-amber-200 flex items-center justify-center shadow-md border border-neutral-800">
+          <Heart className="w-6 h-6 fill-current animate-pulse" />
         </div>
 
         {/* Names Header */}
         <div className="space-y-1 mb-4">
-          <p className="text-xs uppercase tracking-widest text-rose-500 font-bold">
+          <p className="label-caps text-neutral-500 tracking-widest text-[11px]">
             Para la persona más especial
           </p>
-          <h2 className="text-2xl sm:text-3xl font-black text-rose-950">
+          <h2 className="font-display italic text-3xl sm:text-4xl lg:text-5xl font-semibold text-neutral-900 tracking-tight">
             {settings.partnerName}
           </h2>
         </div>
 
         {/* Dedication Text */}
-        <div className="bg-white/80 border border-rose-100 rounded-2xl p-4 mb-6 shadow-xs text-xs sm:text-sm text-rose-900/90 leading-relaxed italic text-left max-w-md mx-auto">
+        <div className="bg-neutral-900/[0.03] border border-neutral-900/10 rounded-2xl p-5 mb-6 text-sm sm:text-base font-serif text-neutral-700 leading-relaxed text-left max-w-md mx-auto">
           "{settings.customReason ||
             'Después de compartir tantas sonrisas, momentos y miradas, supe que no hay nadie con quien preferiría caminar en esta vida. Eres mi persona favorita, mi felicidad y mi mayor ilusión.'}"
-          <div className="text-right not-italic font-bold text-rose-600 mt-2">
+          <div className="text-right font-mono text-xs uppercase tracking-wider text-neutral-500 mt-3">
             — Con todo mi amor, {settings.proposerName}
           </div>
         </div>
@@ -123,9 +125,9 @@ export const ProposalStage: React.FC<ProposalStageProps> = ({ settings, onAccept
         {/* The Big Question */}
         <div className="my-6">
           <motion.h3
-            animate={{ scale: [1, 1.03, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="text-2xl sm:text-3xl md:text-4xl font-black text-rose-600 tracking-tight"
+            animate={{ scale: [1, 1.02, 1] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            className="font-display italic text-3xl sm:text-4xl lg:text-5xl font-semibold text-neutral-900 tracking-tight leading-tight"
           >
             {getQuestionText()}
           </motion.h3>
@@ -138,7 +140,7 @@ export const ProposalStage: React.FC<ProposalStageProps> = ({ settings, onAccept
               key={dodgeCount}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="text-xs font-bold text-rose-600 bg-rose-100/90 px-3 py-1 rounded-full border border-rose-200 shadow-xs"
+              className="font-mono text-xs text-neutral-800 bg-neutral-900/5 px-3 py-1 rounded-full border border-neutral-900/10 shadow-2xs"
             >
               {dodgeMessage}
             </motion.div>
@@ -150,18 +152,20 @@ export const ProposalStage: React.FC<ProposalStageProps> = ({ settings, onAccept
           {/* YES BUTTON */}
           <motion.button
             id="btn-proposal-yes"
+            type="button"
             onClick={handleYesClick}
             style={{ transform: `scale(${yesScale})` }}
-            className="group flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-rose-500 to-pink-500 text-white font-extrabold text-base sm:text-lg shadow-xl shadow-rose-300 hover:shadow-2xl active:scale-95 transition-all cursor-pointer z-10"
+            className="group flex items-center gap-2.5 px-8 py-4 bg-neutral-900 text-[#fdfcf9] hover:bg-neutral-800 font-mono text-sm sm:text-base uppercase tracking-widest shadow-md transition-all cursor-pointer z-10 border border-neutral-900 active:scale-95"
           >
-            <Heart className="w-5 h-5 fill-white group-hover:scale-125 transition-transform" />
+            <Heart className="w-5 h-5 fill-current text-rose-300 group-hover:scale-125 transition-transform" />
             <span>¡SÍ, ACEPTO!</span>
-            <Sparkles className="w-4 h-4 fill-white" />
+            <Sparkles className="w-4 h-4 text-amber-300" />
           </motion.button>
 
           {/* PLAYFUL ESCAPING NO BUTTON */}
           <motion.button
             id="btn-proposal-no"
+            type="button"
             onMouseEnter={moveNoButton}
             onTouchStart={moveNoButton}
             onClick={moveNoButton}
@@ -170,14 +174,14 @@ export const ProposalStage: React.FC<ProposalStageProps> = ({ settings, onAccept
               y: noPosition.y,
             }}
             transition={{ type: 'spring', stiffness: 350, damping: 20 }}
-            className="px-5 py-2.5 rounded-xl bg-gray-200/90 hover:bg-gray-300 text-gray-700 text-xs sm:text-sm font-semibold border border-gray-300/80 shadow-sm cursor-pointer select-none transition-colors"
+            className="px-5 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-mono text-xs uppercase tracking-wider border border-neutral-300 cursor-pointer select-none transition-colors"
           >
             No
           </motion.button>
         </div>
 
         {dodgeCount > 3 && (
-          <p className="text-[11px] text-rose-400 mt-4">
+          <p className="font-mono text-[11px] text-neutral-500 mt-4 tracking-wide">
             (Pst... ¿ya viste que el botón de SÍ es irresistible?)
           </p>
         )}

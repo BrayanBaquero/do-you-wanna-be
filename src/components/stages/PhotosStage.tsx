@@ -97,85 +97,86 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
   };
 
   return (
-    <div className="relative z-10 flex flex-col items-center justify-between min-h-[74vh] px-3 sm:px-4 py-3 max-w-5xl mx-auto text-center w-full">
+    <div className="relative z-10 flex flex-col items-center justify-between min-h-[74vh] px-3 sm:px-6 py-4 max-w-5xl mx-auto text-center w-full">
       {/* Header Info */}
-      <div className="w-full">
-        <div className="flex items-center justify-between flex-wrap gap-2 mb-1.5">
-          <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
-            <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-            Desafío 3 de 4: Álbum de Recuerdos Mágicos ({totalPhotos} fotografías)
-          </span>
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <div className="label-caps tracking-widest text-amber-800/80 font-semibold flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+            <span>Capítulo III • Desafío 3 de 4</span>
+          </div>
 
           <div className="flex items-center gap-2">
             {!isAllRevealed && (
               <button
                 id="btn-reveal-all-photos"
+                type="button"
                 onClick={handleRevealAll}
-                className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider px-3 py-1 bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-300 transition cursor-pointer shadow-2xs"
                 title="Revelar todas las fotos a la vez"
               >
                 <span>Revelar todas</span>
-                <Sparkles className="w-3 h-3 text-rose-500" />
+                <Sparkles className="w-3 h-3 text-amber-600" />
               </button>
             )}
           </div>
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-black text-rose-950">
-          Nuestros Momentos Inolvidables
+        <h2 className="font-display italic text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 leading-tight">
+          Nuestros Recuerdos Inolvidables
         </h2>
-        <p className="text-xs sm:text-sm text-rose-700/80 mt-1 max-w-lg mx-auto">
-          Toca cada fotografía polaroid para revelarla, dale la vuelta para leer el mensaje secreto y déjale mucho amor ❤️
+        <p className="font-serif text-sm sm:text-base text-neutral-600 mt-1.5 max-w-lg mx-auto">
+          Toca cada fotografía polaroid para revelarla, dale la vuelta para leer su mensaje secreto y déjale mucho amor.
         </p>
 
         {/* Progress & Heart Meter Bar */}
-        <div className="mt-3 flex items-center justify-center flex-wrap gap-3 sm:gap-4 text-xs font-bold text-rose-800">
-          <div className="flex items-center gap-1.5 bg-white/80 px-3 py-1 rounded-full border border-rose-200 shadow-xs">
-            <Camera className="w-3.5 h-3.5 text-rose-500" />
-            <span>Reveladas: {revealedCount} / {totalPhotos}</span>
+        <div className="mt-3 flex items-center justify-center flex-wrap gap-2.5 sm:gap-3 text-xs font-mono">
+          <div className="flex items-center gap-1.5 bg-neutral-900/5 px-3 py-1 rounded-full border border-neutral-900/10 text-neutral-800">
+            <Camera className="w-3.5 h-3.5 text-neutral-700" />
+            <span>REVELADAS: {revealedCount} / {totalPhotos}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-white/80 px-3 py-1 rounded-full border border-rose-200 shadow-xs">
+          <div className="flex items-center gap-1.5 bg-neutral-900/5 px-3 py-1 rounded-full border border-neutral-900/10 text-neutral-800">
             <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
-            <span>Amor entregado: {totalReactions}</span>
+            <span>AMOR: {totalReactions}</span>
           </div>
         </div>
       </div>
 
       {/* Interactive Polaroid Grid */}
-      <div className="w-full my-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 justify-items-center">
+      <div className="w-full my-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6 justify-items-center">
         {photos.map((photo, index) => {
           const isRevealed = revealedIds.has(photo.id);
           const isFlipped = flippedIds.has(photo.id);
           const heartCount = reactions[photo.id] || 0;
 
           // Gentle playful rotation angles for vintage polaroid charm
-          const rotations = [-2, 2, -1.5, 2.5, -1, 1.8, -2.2, 1.5, -1.2, 2.2];
+          const rotations = [-1.5, 1.5, -1, 2, -1.8, 1.2, -2, 1.8, -1.2, 1.5];
           const rotationAngle = rotations[index % rotations.length];
 
           return (
             <div
               key={photo.id}
               className="relative w-full max-w-[240px] perspective-1000"
-              style={{ minHeight: '320px' }}
+              style={{ minHeight: '330px' }}
             >
               {/* Polaroid Frame */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.4 }}
+                transition={{ delay: index * 0.08, duration: 0.4 }}
                 style={{
                   transform: `rotate(${rotationAngle}deg)`,
                 }}
                 className="w-full h-full"
               >
                 <div
-                  className={`w-full h-full bg-white rounded-2xl p-3 pb-4 shadow-lg border border-gray-200/80 transition-all duration-500 flex flex-col justify-between select-none relative ${
-                    isRevealed ? 'hover:shadow-xl hover:scale-102' : ''
+                  className={`w-full h-full bg-[#fdfcf9] rounded-xl p-3 pb-4 shadow-sm border border-neutral-900/15 transition-all duration-300 flex flex-col justify-between select-none relative ${
+                    isRevealed ? 'hover:shadow-md hover:scale-[1.02]' : ''
                   }`}
                 >
-                  {/* Adhesive tape effect at the top */}
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-16 h-5 bg-amber-100/90 border-t border-b border-amber-200/80 rotate-1 shadow-2xs z-20" />
+                  {/* Washi tape effect at the top */}
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-16 h-4 bg-[#e8dfcf] border-t border-b border-neutral-300/60 rotate-1 shadow-2xs z-20" />
 
                   {/* CARD CONTENT */}
                   {!isRevealed ? (
@@ -183,16 +184,16 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
                     <div
                       id={`polaroid-mystery-${photo.id}`}
                       onClick={(e) => handleReveal(photo, e)}
-                      className="w-full h-56 rounded-xl bg-gradient-to-tr from-rose-100 via-pink-100 to-rose-200 border-2 border-dashed border-rose-300 flex flex-col items-center justify-center p-4 text-center cursor-pointer group hover:bg-rose-100 transition-colors"
+                      className="w-full h-56 rounded-lg bg-neutral-900/[0.03] border border-dashed border-neutral-900/20 flex flex-col items-center justify-center p-4 text-center cursor-pointer group hover:bg-neutral-900/[0.06] transition-colors"
                     >
-                      <div className="w-14 h-14 rounded-full bg-white text-rose-500 flex items-center justify-center shadow-md mb-2 group-hover:scale-110 transition-transform">
-                        <Camera className="w-7 h-7" />
+                      <div className="w-12 h-12 rounded-full bg-white text-neutral-800 border border-neutral-900/10 flex items-center justify-center shadow-xs mb-2 group-hover:scale-105 transition-transform">
+                        <Camera className="w-5 h-5 text-neutral-700" />
                       </div>
-                      <span className="text-xs font-bold text-rose-800">
+                      <span className="font-mono text-xs font-semibold text-neutral-900">
                         {photo.title || `Recuerdo #${index + 1}`}
                       </span>
-                      <span className="text-[11px] text-rose-500 font-semibold mt-1 bg-white/80 px-2 py-0.5 rounded-full shadow-2xs animate-pulse">
-                        Toca para revelar ✨
+                      <span className="font-mono text-[10px] text-neutral-600 uppercase tracking-wider mt-1.5 bg-white px-2 py-0.5 rounded-full border border-neutral-200 shadow-2xs">
+                        Tocar para revelar ✨
                       </span>
                     </div>
                   ) : (
@@ -208,7 +209,7 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
                             exit={{ opacity: 0 }}
                             className="flex flex-col"
                           >
-                            <div className="relative w-full h-44 sm:h-48 rounded-lg overflow-hidden bg-gray-100 border border-gray-100 group">
+                            <div className="relative w-full h-44 sm:h-48 rounded-md overflow-hidden bg-neutral-100 border border-neutral-900/10 group">
                               <img
                                 src={photo.url}
                                 alt={photo.title}
@@ -218,19 +219,20 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
 
                               {/* Zoom button */}
                               <button
+                                type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setZoomedPhoto(photo);
                                 }}
-                                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/40 hover:bg-black/60 text-white backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute top-2 right-2 p-1.5 rounded-md bg-neutral-900/60 hover:bg-neutral-900 text-white backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                 title="Ver en grande"
                               >
-                                <ZoomIn className="w-4 h-4" />
+                                <ZoomIn className="w-3.5 h-3.5" />
                               </button>
 
                               {/* Location tag badge */}
                               {photo.dateOrLocation && (
-                                <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-black/50 text-white text-[10px] font-medium backdrop-blur-xs max-w-[90%] truncate">
+                                <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded bg-neutral-900/70 text-white font-mono text-[9px] uppercase tracking-wider backdrop-blur-xs max-w-[90%] truncate">
                                   📍 {photo.dateOrLocation}
                                 </div>
                               )}
@@ -238,7 +240,7 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
 
                             {/* Caption text */}
                             <div className="pt-2 text-left">
-                              <h4 className="text-xs font-black text-gray-900 tracking-tight truncate">
+                              <h4 className="font-display italic text-sm font-semibold text-neutral-900 tracking-tight truncate">
                                 {photo.title}
                               </h4>
                             </div>
@@ -250,19 +252,19 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="w-full h-44 sm:h-48 rounded-lg bg-amber-50/90 border border-amber-200/80 p-3 flex flex-col justify-between text-left overflow-y-auto"
+                            className="w-full h-44 sm:h-48 rounded-md bg-[#faf7ef] border border-neutral-900/10 p-3 flex flex-col justify-between text-left overflow-y-auto"
                           >
                             <div>
-                              <div className="flex items-center justify-between text-[10px] text-amber-700 font-mono border-b border-amber-200 pb-1 mb-1.5">
+                              <div className="flex items-center justify-between text-[9px] text-neutral-500 font-mono uppercase tracking-widest border-b border-neutral-900/10 pb-1 mb-1.5">
+                                <span>DE: MI CORAZÓN</span>
                                 <span>PARA: {partnerName}</span>
-                                <span>💌 NOTA SECRETA</span>
                               </div>
-                              <p className="text-xs text-amber-950 font-serif italic leading-relaxed">
+                              <p className="font-serif italic text-xs text-neutral-800 leading-relaxed">
                                 "{photo.note || 'Un recuerdo lleno de magia a tu lado...'}"
                               </p>
                             </div>
 
-                            <div className="text-[10px] text-right font-bold text-rose-600 pt-1">
+                            <div className="font-mono text-[9px] text-right uppercase tracking-wider text-neutral-500 pt-1">
                               Siempre en mi corazón ❤️
                             </div>
                           </motion.div>
@@ -270,27 +272,29 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
                       </AnimatePresence>
 
                       {/* Polaroid Interactive Controls */}
-                      <div className="pt-2.5 mt-1 border-t border-gray-100 flex items-center justify-between">
+                      <div className="pt-2.5 mt-1 border-t border-neutral-900/10 flex items-center justify-between">
                         {/* Flip Button */}
                         <button
                           id={`btn-flip-${photo.id}`}
+                          type="button"
                           onClick={(e) => handleFlip(photo.id, e)}
-                          className="flex items-center gap-1 text-[11px] font-semibold text-gray-600 hover:text-rose-600 px-2 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                          className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-neutral-600 hover:text-neutral-900 px-2 py-1 rounded hover:bg-neutral-100 transition cursor-pointer"
                           title={isFlipped ? 'Ver la foto' : 'Leer la nota secreta'}
                         >
-                          <RotateCw className="w-3 h-3 text-rose-500" />
-                          <span>{isFlipped ? 'Ver Foto' : 'Leer Nota'}</span>
+                          <RotateCw className="w-3 h-3 text-neutral-500" />
+                          <span>{isFlipped ? 'Foto' : 'Nota'}</span>
                         </button>
 
                         {/* Love reaction button with floating counter */}
                         <div className="relative">
                           <button
                             id={`btn-heart-${photo.id}`}
+                            type="button"
                             onClick={(e) => handleHeartReaction(photo.id, e)}
-                            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition active:scale-90 cursor-pointer shadow-2xs border border-rose-200/70"
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-neutral-900/5 hover:bg-neutral-900/10 text-neutral-800 font-mono text-[11px] font-medium transition active:scale-90 cursor-pointer border border-neutral-900/10"
                             title="Darle amor a esta foto"
                           >
-                            <Heart className={`w-3.5 h-3.5 ${heartCount > 0 ? 'fill-rose-500 text-rose-500' : 'text-rose-500'}`} />
+                            <Heart className={`w-3 h-3 ${heartCount > 0 ? 'fill-rose-500 text-rose-500' : 'text-neutral-500'}`} />
                             <span>{heartCount > 0 ? heartCount : '+1'}</span>
                           </button>
 
@@ -315,8 +319,8 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
 
                   {/* Mystery label on bottom if not revealed */}
                   {!isRevealed && (
-                    <div className="pt-2 text-center text-[10px] font-medium text-rose-400">
-                      Toca el recuadro para abrir
+                    <div className="pt-2 text-center font-mono text-[9px] uppercase tracking-widest text-neutral-400">
+                      Tocar recuadro
                     </div>
                   )}
                 </div>
@@ -332,27 +336,28 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
           <motion.div
             initial={{ y: 15, opacity: 0, scale: 0.95 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl border border-rose-200 p-4 shadow-xl flex flex-col items-center gap-3"
+            className="w-full max-w-md bg-[#fdfcf9] backdrop-blur-md rounded-2xl border border-neutral-900/15 p-5 shadow-md flex flex-col items-center gap-3"
           >
-            <div className="flex items-center gap-2 text-rose-900 font-bold text-sm">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-              <span>¡Has descubierto todos nuestros momentos juntos!</span>
+            <div className="flex items-center gap-2 text-neutral-900 font-display italic text-lg sm:text-xl">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>¡Has descubierto todos nuestros momentos!</span>
             </div>
 
             <button
               id="btn-next-to-chest"
+              type="button"
               onClick={() => {
                 sound.playChime();
                 onNext();
               }}
-              className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-sm shadow-lg shadow-rose-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer"
+              className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-neutral-900 text-[#fdfcf9] hover:bg-neutral-800 border border-neutral-900 font-mono text-xs sm:text-sm uppercase tracking-widest transition-all duration-200 shadow-sm cursor-pointer active:scale-[0.98]"
             >
               <span>Continuar al Cofre Secreto</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
         ) : (
-          <p className="text-xs text-rose-500 italic bg-white/80 px-3.5 py-1.5 rounded-full border border-rose-200/80 shadow-2xs">
+          <p className="font-mono text-xs text-neutral-500 tracking-wider bg-white/90 px-4 py-1.5 rounded-full border border-neutral-200 shadow-2xs">
             Revela todas las fotos ({revealedCount}/{totalPhotos}) para abrir el siguiente desafío 🎁
           </p>
         )}
@@ -365,17 +370,18 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
           onClick={() => setZoomedPhoto(null)}
         >
           <div
-            className="relative max-w-xl w-full bg-white rounded-3xl p-4 shadow-2xl overflow-hidden text-left"
+            className="relative max-w-xl w-full bg-[#fdfcf9] rounded-2xl p-4 shadow-2xl overflow-hidden text-left border border-neutral-900/20"
             onClick={(e) => e.stopPropagation()}
           >
             <button
+              type="button"
               onClick={() => setZoomedPhoto(null)}
-              className="absolute top-3 right-3 p-2 text-gray-500 hover:text-gray-800 rounded-full bg-gray-100 hover:bg-gray-200 z-10 transition"
+              className="absolute top-3 right-3 p-2 text-neutral-600 hover:text-neutral-950 rounded-full bg-neutral-100 hover:bg-neutral-200 z-10 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="w-full aspect-4/3 rounded-2xl overflow-hidden bg-black/5">
+            <div className="w-full aspect-4/3 rounded-lg overflow-hidden bg-neutral-950">
               <img
                 src={zoomedPhoto.url}
                 alt={zoomedPhoto.title}
@@ -384,12 +390,12 @@ export const PhotosStage: React.FC<PhotosStageProps> = ({
               />
             </div>
 
-            <div className="pt-3 px-1">
-              <h3 className="text-base font-bold text-gray-900">{zoomedPhoto.title}</h3>
+            <div className="pt-3.5 px-1">
+              <h3 className="font-display italic text-xl font-semibold text-neutral-900">{zoomedPhoto.title}</h3>
               {zoomedPhoto.dateOrLocation && (
-                <p className="text-xs text-rose-600 font-medium">📍 {zoomedPhoto.dateOrLocation}</p>
+                <p className="font-mono text-xs uppercase tracking-wider text-neutral-500 mt-0.5">📍 {zoomedPhoto.dateOrLocation}</p>
               )}
-              <p className="text-xs text-gray-600 italic mt-2 bg-rose-50/60 p-2.5 rounded-xl border border-rose-100">
+              <p className="font-serif italic text-sm text-neutral-700 mt-2.5 bg-neutral-900/5 p-3 rounded-xl border border-neutral-900/10">
                 "{zoomedPhoto.note}"
               </p>
             </div>

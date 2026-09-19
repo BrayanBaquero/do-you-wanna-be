@@ -62,28 +62,28 @@ export const HeartsStage: React.FC<HeartsStageProps> = ({ onNext, partnerName })
     <div className="relative z-10 flex flex-col items-center justify-between min-h-[72vh] px-4 py-3 max-w-xl mx-auto text-center">
       {/* Header Info */}
       <div className="w-full">
-        <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-rose-100 text-rose-700 mb-1.5 border border-rose-200">
-          <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-          Desafío 1 de 4: Atrapa el Amor
-        </span>
-        <h2 className="text-xl sm:text-2xl font-black text-rose-950">
+        <div className="label-caps mb-1.5 tracking-widest text-amber-800/80 font-semibold flex items-center justify-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+          <span>Capítulo I • Desafío 1 de 4</span>
+        </div>
+        <h2 className="font-display italic text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-900 leading-tight">
           Atrapa 5 razones por las que eres tan especial
         </h2>
-        <p className="text-xs sm:text-sm text-rose-700/80 mt-1">
+        <p className="font-serif text-sm sm:text-base text-neutral-600 mt-1">
           Toca los corazones flotantes para descubrir lo que guardan dentro
         </p>
 
         {/* Counter bar */}
         <div className="mt-3 flex items-center justify-center gap-3">
-          <div className="w-48 bg-rose-200/60 rounded-full h-3 p-0.5 overflow-hidden border border-rose-200">
+          <div className="w-48 bg-neutral-900/10 rounded-full h-2 p-0.5 overflow-hidden border border-neutral-900/10">
             <motion.div
-              className="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full"
+              className="h-full bg-neutral-900 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${(collectedCount / targetCount) * 100}%` }}
               transition={{ duration: 0.3 }}
             />
           </div>
-          <span className="text-xs font-bold text-rose-800">
+          <span className="font-mono text-xs font-medium text-neutral-700">
             {collectedCount} / {targetCount} ❤️
           </span>
         </div>
@@ -170,13 +170,13 @@ export const HeartsStage: React.FC<HeartsStageProps> = ({ onNext, partnerName })
               sound.playChime();
               onNext();
             }}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-sm shadow-lg shadow-rose-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer"
+            className="group inline-flex items-center gap-2.5 px-7 py-3.5 bg-neutral-900 text-[#fdfcf9] hover:bg-neutral-800 border border-neutral-900 font-mono text-xs sm:text-sm uppercase tracking-widest transition-all duration-200 shadow-sm cursor-pointer active:scale-[0.98]"
           >
             <span>Siguiente Desafío: Test del Destino</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </motion.button>
         ) : (
-          <p className="text-xs text-rose-500 italic">
+          <p className="font-mono text-xs text-neutral-500 tracking-wider">
             Quedan {targetCount - collectedCount} corazones por atrapar...
           </p>
         )}

@@ -1,13 +1,108 @@
 @import "tailwindcss";
 
+:root {
+  --bg: #fdfcf9;
+  --ink: #1a1a1a;
+  --accent: #d4a373;
+  --ink-faint: rgba(26, 26, 26, 0.07);
+  --ink-muted: rgba(26, 26, 26, 0.55);
+  --ink-border: rgba(26, 26, 26, 0.12);
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Newsreader', Georgia, serif;
+  --font-mono: 'Geist Mono', monospace;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: 'Newsreader', Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-serif {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+.font-mono {
+  font-family: 'Geist Mono', monospace;
+}
+
+.label-caps {
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-muted);
+}
+
+.btn-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--ink-border);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink);
+  transition: all 0.25s ease;
+}
+
+.btn-circle:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.btn-pill-editorial {
+  height: 38px;
+  padding: 0 1.2rem;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.25s ease;
+}
+
+.btn-pill-editorial:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+/* Paper noise texture effect */
+.paper-noise::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  opacity: 0.035;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='filter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23filter)'/%3E%3C/svg%3E");
+  z-index: 99;
+}
+
 @layer base {
   /* Default Rose Romance */
   :root,
   [data-theme="rose"] {
-    --theme-bg-gradient: linear-gradient(to bottom, #fff1f2, #ffe4e6 70%, #fef2f2);
-    --ambient-light-1: rgba(254, 205, 211, 0.45);
-    --ambient-light-2: rgba(251, 113, 133, 0.35);
-    --ambient-light-3: rgba(244, 63, 94, 0.25);
+    --theme-bg-gradient: linear-gradient(to bottom, #fdfcf9, #fbf7ee 70%, #f7f1e3);
+    --ambient-light-1: rgba(212, 163, 115, 0.2);
+    --ambient-light-2: rgba(251, 113, 133, 0.15);
+    --ambient-light-3: rgba(244, 63, 94, 0.1);
   }
 
   /* Lavender / Dreamy Lilac */
