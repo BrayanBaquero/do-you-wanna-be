@@ -17,6 +17,9 @@ export const IntroStage: React.FC<IntroStageProps> = ({
 }) => {
   const handleStartClick = () => {
     sound.playChime();
+    if (settings.customAudioUrl && settings.backgroundMusicEnabled !== false) {
+      sound.playMusic();
+    }
     onStart();
   };
 
