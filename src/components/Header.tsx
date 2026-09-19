@@ -48,19 +48,18 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2">
           <span className="text-2xl animate-pulse">💌</span>
           <div>
-            <h1 className="text-sm md:text-base font-bold text-rose-900 tracking-tight flex items-center gap-1.5">
+            <h1 className="text-sm md:text-base font-bold text-rose-900 tracking-tight flex items-center gap-1.5 flex-wrap">
               <span>Nuestra Historia</span>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-medium hidden sm:inline-block">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-medium">
                 {partnerGreeting}
               </span>
-              {isCloudSynced && (
-                <span
-                  title="Sincronizado permanentemente en la nube con Firebase"
-                  className="hidden md:inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200"
-                >
-                  ☁️ En la nube
-                </span>
-              )}
+              <span
+                title="Sincronizado permanentemente en la nube con Firebase"
+                className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300"
+              >
+                <span>☁️</span>
+                <span>En la nube</span>
+              </span>
             </h1>
             <p className="text-[11px] text-rose-500 font-medium">Un juego con mucho amor</p>
           </div>

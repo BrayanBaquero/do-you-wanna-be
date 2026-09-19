@@ -24,6 +24,24 @@ jobs:
       - name: Descargar codigo
         uses: actions/checkout@v4
 
+      - name: Verificar y preparar estructura de archivos
+        run: |
+          echo "=== Archivos en la raíz del repositorio ==="
+          ls -la
+          if [ ! -f "src/main.tsx" ]; then
+            echo "src/main.tsx no encontrado en la raíz. Buscando en subdirectorios..."
+            FOUND_MAIN=$(find . -maxdepth 3 -name "main.tsx" -not -path "*/node_modules/*" | head -n 1)
+            if [ -n "$FOUND_MAIN" ]; then
+              SUBDIR=$(dirname $(dirname "$FOUND_MAIN"))
+              echo "Proyecto detectado dentro de subcarpeta: $SUBDIR"
+              echo "Copiando archivos a la raíz para compilar..."
+              cp -r $SUBDIR/* . 2>/dev/null || true
+            else
+              echo "ERROR: La carpeta 'src/' no existe en tu repositorio de GitHub."
+              echo "Por favor asegúrate de subir la carpeta 'src/' completa."
+            fi
+          fi
+
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
